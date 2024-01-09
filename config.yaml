@@ -1,0 +1,15 @@
+model_path:
+  small: "./models/mistral-7b-instruct-v0.1.Q3_K_M.gguf"
+  large:  "./models/mistral-7b-instruct-v0.1.Q5_K_M.gguf"
+
+model_type: "mistral"
+
+embeddings_path: "BAAI/bge-large-en-v1.5"
+
+model_config: 
+  'max_new_tokens': 512
+  'temperature' : 0
+  'context_length': 4096
+  'gpu_layers' : 0
+
+chat_history_path: "./chat_sessions/"

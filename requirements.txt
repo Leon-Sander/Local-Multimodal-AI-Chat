@@ -1,0 +1,13 @@
+streamlit-mic-recorder
+sentence_transformers
+InstructorEmbedding
+langchain==0.0.341
+llama-cpp-python
+ctransformers
+transformers
+streamlit
+pypdfium2
+chromadb
+librosa
+pyyaml
+torch

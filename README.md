@@ -1,5 +1,7 @@
 # Local Multimodal AI Chat
 
+## Changelog
+   12.01.2024: After writing in the text field and pressing the send button, the llm would not generate a response. It happened because the clear_input_field callback from the button, changes the text field value to an empty string after saving the user question. But changing the text field value triggers the callback from the text field widget, and sets the user_question to an empty string again. Therefore the llm will not be called. As a workaround I added a check before changing the user_question value.
 
 ## Overview
 

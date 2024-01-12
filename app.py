@@ -20,8 +20,9 @@ def load_chain(chat_history):
     return load_normal_chain(chat_history)
 
 def clear_input_field():
-    st.session_state.user_question = st.session_state.user_input
-    st.session_state.user_input = ""
+    if st.session_state.user_question == "":
+        st.session_state.user_question = st.session_state.user_input
+        st.session_state.user_input = ""
 
 def set_send_input():
     st.session_state.send_input = True
@@ -114,6 +115,8 @@ def main():
             llm_chain = load_chain(chat_history)
             llm_response = llm_chain.run(st.session_state.user_question)
             st.session_state.user_question = ""
+
+        st.session_state.send_input = False
 
     if chat_history.messages != []:
         with chat_container:

@@ -1,10 +1,15 @@
 # Local Multimodal AI Chat
 
 ## Changelog
-   16.01.2024: Windows User semmed to have problems with the datetime format of the saved json chat historys, I changed the format in the ultis.py file to "%Y_%m_%d_%H_%M_%S", this should solve the issue. Feel free to change to your liking.
-   Scrolling down in the chat annoyed me, the text input box and the latest message are at the top now.
-   
-   12.01.2024: After writing in the text field and pressing the send button, the llm would not generate a response. It happened because the clear_input_field callback from the button, changes the text field value to an empty string after saving the user question. But changing the text field value triggers the callback from the text field widget, and sets the user_question to an empty string again. Therefore the llm will not be called. As a workaround I added a check before changing the user_question value.
+### 16.01.2024:
+- **Windows User DateTime Format Issue:** Windows users seemed to have problems with the datetime format of the saved JSON chat histories. I changed the format in the `ultis.py` file to `"%Y_%m_%d_%H_%M_%S"`, which should solve the issue. Feel free to change it to your liking.
+- **UI Adjustment for Chat Scrolling:** Scrolling down in the chat annoyed me, so the text input box and the latest message are at the top now.
+
+### 12.01.2024:
+- **Issue with Message Sending:** After writing in the text field and pressing the send button, the LLM would not generate a response. 
+- **Cause of the Issue:** This happened because the `clear_input_field` callback from the button changes the text field value to an empty string after saving the user question. However, changing the text field value triggers the callback from the text field widget, setting the `user_question` to an empty string again. As a result, the LLM is not called.
+- **Implemented Workaround:** As a workaround, I added a check before changing the `user_question` value.
+
 
 ## Overview
 
@@ -50,11 +55,11 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 
 
 ## Possible Improvements
-- Add model caching
-- Add images and audio to chat history saving and loading
-- Use a database to save the chat history
-- Integrate ollama, openai, gemini or other model provider 
-- Add image generator model
-- authentication mechanism
-- change theme
-- seperate frontend and backend code for better deployment
+- Add Model Caching.
+- Add Images and Audio to Chat History Saving and Loading.
+- Use a Database to Save the Chat History.
+- Integrate Ollama, OpenAI, Gemini, or Other Model Providers.
+- Add Image Generator Model.
+- Authentication Mechanism.
+- Change Theme.
+- Separate Frontend and Backend Code for Better Deployment.

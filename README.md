@@ -1,6 +1,9 @@
 # Local Multimodal AI Chat
 
 ## Changelog
+   16.01.2024: Windows User semmed to have problems with the datetime format of the saved json chat historys, I changed the format in the ultis.py file to "%Y_%m_%d_%H_%M_%S", this should solve the issue. Feel free to change to your liking.
+   Scrolling down in the chat annoyed me, the text input box and the latest message are at the top now.
+   
    12.01.2024: After writing in the text field and pressing the send button, the llm would not generate a response. It happened because the clear_input_field callback from the button, changes the text field value to an empty string after saving the user question. But changing the text field value triggers the callback from the text field widget, and sets the user_question to an empty string again. Therefore the llm will not be called. As a workaround I added a check before changing the user_question value.
 
 ## Overview
@@ -44,3 +47,14 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 4. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
 
 5. **Enter command in terminal**: streamlit run app.py
+
+
+## Possible Improvements
+- Add model caching
+- Add images and audio to chat history saving and loading
+- Use a database to save the chat history
+- Integrate ollama, openai, gemini or other model provider 
+- Add image generator model
+- authentication mechanism
+- change theme
+- seperate frontend and backend code for better deployment

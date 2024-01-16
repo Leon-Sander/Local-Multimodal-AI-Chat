@@ -41,7 +41,7 @@ def save_chat_history():
 def main():
     st.title("Multimodal Local Chat App")
     st.write(css, unsafe_allow_html=True)
-    chat_container = st.container()
+    
     st.sidebar.title("Chat Sessions")
     chat_sessions = ["new_session"] + os.listdir(config["chat_history_path"])
 
@@ -72,6 +72,7 @@ def main():
     user_input = st.text_input("Type your message here", key="user_input", on_change=set_send_input)
 
     voice_recording_column, send_button_column = st.columns(2)
+    chat_container = st.container()
     with voice_recording_column:
         voice_recording=mic_recorder(start_prompt="Start recording",stop_prompt="Stop recording", just_once=True)
     with send_button_column:
@@ -121,7 +122,7 @@ def main():
     if chat_history.messages != []:
         with chat_container:
             st.write("Chat History:")
-            for message in chat_history.messages:
+            for message in reversed(chat_history.messages):
                 if message.type == "human":
                     st.write(get_user_template(message.content), unsafe_allow_html=True)
                 else:

@@ -38,20 +38,22 @@ So, if you're interested in AI chat applications and want to dive into how they'
 
 To get started with Local Multimodal AI Chat, clone the repository and follow these simple steps:
 
-1. **Upgrade pip**: pip install --upgrade pip
+1. **Create a Virtual Environment**: I am using Python 3.10.12 currently
 
-2. **Install Requirements**: pip install -r requirements.txt
+2. **Upgrade pip**: pip install --upgrade pip
+
+3. **Install Requirements**: pip install -r requirements.txt
    
    **Note:** in requirements_with_versions.txt I saved the versions of the requirements while creating this project, and in pip_freeze.txt is a complete freeze of the packages in the environment I used. So if you encounter errors due to newer versions, you might want to consider using one of those requirements files, or at least the versions for the packages which make problems.
    
    **Windows Users:** The installation might differ a bit for you, if you encounter errors you can't solve, please open an Issue here on github.
 
-3. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
+4. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
 And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) form TheBloke.
 
-4. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
+5. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
 
-5. **Enter command in terminal**: streamlit run app.py
+6. **Enter command in terminal**: streamlit run app.py
 
 
 ## Possible Improvements

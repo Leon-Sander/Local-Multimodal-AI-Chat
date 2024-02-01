@@ -1,6 +1,6 @@
 model_path:
   small: "./models/mistral-7b-instruct-v0.1.Q3_K_M.gguf"
-  large:  "./models/mistral-7b-instruct-v0.1.Q5_K_M.gguf"
+  large:  "./models/mistral-7b-instruct-v0.1.Q5_K_M.gguf" 
 
 model_type: "mistral"
 
@@ -12,4 +12,5 @@ model_config:
   'context_length': 4096
   'gpu_layers' : 0
 
-chat_history_path: "./chat_sessions/"
+chat_sessions_database_path: "./chat_sessions_database/"
+

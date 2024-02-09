@@ -1,23 +1,23 @@
 import streamlit as st
 from llm_chains import load_normal_chain, load_pdf_chat_chain
-from langchain.memory import StreamlitChatMessageHistory
 from streamlit_mic_recorder import mic_recorder
-from utils import save_chat_history_json, get_timestamp, load_chat_history_json
+from utils import get_timestamp
 from image_handler import handle_image
 from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
-from html_templates import get_bot_template, get_user_template, css
+from html_templates import css, get_media_template
+from database_operations import load_last_k_text_messages, save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history
+import sqlite3
 import yaml
-import os
 
 with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
-def load_chain(chat_history):
+def load_chain():
     if st.session_state.pdf_chat:
         print("loading pdf chat chain")
-        return load_pdf_chat_chain(chat_history)
-    return load_normal_chain(chat_history)
+        return load_pdf_chat_chain(chat_history=[])
+    return load_normal_chain()
 
 def clear_input_field():
     if st.session_state.user_question == "":
@@ -31,44 +31,39 @@ def set_send_input():
 def toggle_pdf_chat():
     st.session_state.pdf_chat = True
 
-def save_chat_history():
-    if st.session_state.history != []:
-        if st.session_state.session_key == "new_session":
-            st.session_state.new_session_key = get_timestamp() + ".json"
-            save_chat_history_json(st.session_state.history, config["chat_history_path"] + st.session_state.new_session_key)
-        else:
-            save_chat_history_json(st.session_state.history, config["chat_history_path"] + st.session_state.session_key)
+def get_session_key():
+    if st.session_state.session_key == "new_session":
+        st.session_state.new_session_key = get_timestamp()
+        return st.session_state.new_session_key
+    return st.session_state.session_key
+
+def delete_chat_session_history():
+    delete_chat_history(st.session_state.session_key)
+    st.session_state.session_index_tracker = "new_session"
+
+
 def main():
     st.title("Multimodal Local Chat App")
     st.write(css, unsafe_allow_html=True)
     
-    st.sidebar.title("Chat Sessions")
-    chat_sessions = ["new_session"] + os.listdir(config["chat_history_path"])
-
     if "send_input" not in st.session_state:
         st.session_state.session_key = "new_session"
         st.session_state.send_input = False
         st.session_state.user_question = ""
         st.session_state.new_session_key = None
         st.session_state.session_index_tracker = "new_session"
+        st.session_state.db_conn = sqlite3.connect(config["chat_sessions_database_path"], check_same_thread=False)
     if st.session_state.session_key == "new_session" and st.session_state.new_session_key != None:
         st.session_state.session_index_tracker = st.session_state.new_session_key
         st.session_state.new_session_key = None
 
+    st.sidebar.title("Chat Sessions")
+    chat_sessions = ["new_session"] + get_all_chat_history_ids()
 
     index = chat_sessions.index(st.session_state.session_index_tracker)
     st.sidebar.selectbox("Select a chat session", chat_sessions, key="session_key", index=index)
     st.sidebar.toggle("PDF Chat", key="pdf_chat", value=False)
-
-
-    if st.session_state.session_key != "new_session":
-        st.session_state.history = load_chat_history_json(config["chat_history_path"] + st.session_state.session_key)
-    else:
-        st.session_state.history = []
-
-    chat_history = StreamlitChatMessageHistory(key="history")
-    
-
+    st.sidebar.button("Delete Chat Session", on_click=delete_chat_session_history)
     user_input = st.text_input("Type your message here", key="user_input", on_change=set_send_input)
 
     voice_recording=mic_recorder(start_prompt="Start recording",stop_prompt="Stop recording", just_once=True)
@@ -87,46 +82,48 @@ def main():
     if uploaded_audio:
         transcribed_audio = transcribe_audio(uploaded_audio.getvalue())
         print(transcribed_audio)
-        llm_chain = load_chain(chat_history)
-        llm_chain.run("Summarize this text: " + transcribed_audio)
+        llm_chain = load_chain()
+        llm_answer = llm_chain.run(user_input = "Summarize this text: " + transcribed_audio, chat_history=load_last_k_text_messages)
+        save_audio_message(get_session_key(), "human", uploaded_audio.getvalue())
+        save_text_message(get_session_key(), "ai", llm_answer)
 
     if voice_recording:
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
-        llm_chain = load_chain(chat_history)
-        llm_chain.run(transcribed_audio)
+        llm_chain = load_chain()
+        llm_answer = llm_chain.run(user_input = transcribed_audio, chat_history=load_last_k_text_messages)
+        save_audio_message(get_session_key(), "human", voice_recording["bytes"])
+        save_text_message(get_session_key(), "ai", llm_answer)
 
 
     if st.session_state.send_input:
         if uploaded_image:
             with st.spinner("Processing image..."):
-                user_message = "Describe this image in detail please."
-                if st.session_state.user_question != "":
-                    user_message = st.session_state.user_question
-                    st.session_state.user_question = ""
-                llm_answer = handle_image(uploaded_image.getvalue(), user_message)
-                chat_history.add_user_message(user_message)
-                chat_history.add_ai_message(llm_answer)
+                llm_answer = handle_image(uploaded_image.getvalue(), st.session_state.user_question)
+                save_text_message(get_session_key(), "human", st.session_state.user_question)
+                save_image_message(get_session_key(), "human", uploaded_image.getvalue())
+                save_text_message(get_session_key(), "ai", llm_answer)
+                st.session_state.user_question = ""
+
 
 
 
         if st.session_state.user_question != "":
-            llm_chain = load_chain(chat_history)
-            llm_response = llm_chain.run(st.session_state.user_question)
+            llm_chain = load_chain()
+            llm_answer = llm_chain.run(user_input = st.session_state.user_question, chat_history=load_last_k_text_messages)
+            save_text_message(get_session_key(), "human", st.session_state.user_question)
+            save_text_message(get_session_key(), "ai", llm_answer)
             st.session_state.user_question = ""
 
         st.session_state.send_input = False
 
-    if chat_history.messages != []:
+    if (st.session_state.session_key != "new_session") != (st.session_state.new_session_key != None):
         with chat_container:
-            st.write("Chat History:")
-            for message in reversed(chat_history.messages):
-                if message.type == "human":
-                    st.write(get_user_template(message.content), unsafe_allow_html=True)
-                else:
-                    st.write(get_bot_template(message.content), unsafe_allow_html=True)
+            #st.write("Chat History:")
+            chat_history_messages = load_messages(get_session_key())
 
-    save_chat_history()
+            for message in reversed(chat_history_messages):
+                st.write(get_media_template(message["content"], message["message_type"], message["sender_type"]), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

@@ -12,5 +12,5 @@ model_config:
   'context_length': 4096
   'gpu_layers' : 0
 
-chat_sessions_database_path: "./chat_sessions_database/"
+chat_sessions_database_path: "./chat_sessions/chat_sessions.db"
 

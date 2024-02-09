@@ -27,9 +27,12 @@ def create_prompt_from_template(template):
 
 def create_llm_chain(llm, chat_prompt, memory):
     return LLMChain(llm=llm, prompt=chat_prompt, memory=memory)
+
+def create_llm_chain_no_memory(llm, chat_prompt):
+    return LLMChain(llm=llm, prompt=chat_prompt)
     
-def load_normal_chain(chat_history):
-    return chatChain(chat_history)
+def load_normal_chain():
+    return chatChain()
 
 def load_vectordb(embeddings):
     persistent_client = chromadb.PersistentClient("chroma_db")
@@ -42,32 +45,30 @@ def load_vectordb(embeddings):
 
     return langchain_chroma
 
-def load_pdf_chat_chain(chat_history):
-    return pdfChatChain(chat_history)
+def load_pdf_chat_chain():
+    return pdfChatChain()
 
 def load_retrieval_chain(llm, memory, vector_db):
     return RetrievalQA.from_llm(llm=llm, memory=memory, retriever=vector_db.as_retriever(kwargs={"k": 3}))
 
 class pdfChatChain:
 
-    def __init__(self, chat_history):
-        self.memory = create_chat_memory(chat_history)
-        self.vector_db = load_vectordb(create_embeddings())
+    def __init__(self):
+        vector_db = load_vectordb(create_embeddings())
         llm = create_llm()
-        #chat_prompt = create_prompt_from_template(memory_prompt_template)
-        self.llm_chain = load_retrieval_chain(llm, self.memory, self.vector_db)
+        self.llm_chain = load_retrieval_chain(llm, vector_db)
 
-    def run(self, user_input):
+    def run(self, user_input, chat_history):
         print("Pdf chat chain is running...")
-        return self.llm_chain.run(query = user_input, history=self.memory.chat_memory.messages ,stop=["Human:"])
+        return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]
 
 class chatChain:
 
-    def __init__(self, chat_history):
-        self.memory = create_chat_memory(chat_history)
+    def __init__(self):
         llm = create_llm()
         chat_prompt = create_prompt_from_template(memory_prompt_template)
-        self.llm_chain = create_llm_chain(llm, chat_prompt, self.memory)
+        self.llm_chain = create_llm_chain_no_memory(llm, chat_prompt)
 
-    def run(self, user_input):
-        return self.llm_chain.run(human_input = user_input, history=self.memory.chat_memory.messages ,stop=["Human:"])
+    def run(self, user_input, chat_history):
+        print(user_input)
+        return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]

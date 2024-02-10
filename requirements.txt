@@ -1,13 +1,13 @@
 streamlit-mic-recorder
-sentence_transformers
+sentence-transformers
 InstructorEmbedding
-langchain==0.0.341
+langchain-community
 llama-cpp-python
 ctransformers
 transformers
 streamlit
+langchain
 pypdfium2
 chromadb
 librosa
 pyyaml
-torch

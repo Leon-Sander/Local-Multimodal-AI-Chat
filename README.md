@@ -1,6 +1,13 @@
 # Local Multimodal AI Chat
 
 ## Changelog
+### 08.02.2024:
+
+- **SQLite Database for Chat History**: Implemented a SQLite database to store the chat history.
+- **Displaying Images and Audio Files in Chat**: Chat history now supports displaying images and audio files.
+- **Added Button to delete Chat History**
+- **Updated langchain**: Runs now with the current langchain version 0.1.6
+
 ### 16.01.2024:
 - **Windows User DateTime Format Issue:** Windows users seemed to have problems with the datetime format of the saved JSON chat histories. I changed the format in the `ultis.py` file to `"%Y_%m_%d_%H_%M_%S"`, which should solve the issue. Feel free to change it to your liking.
 - **UI Adjustment for Chat Scrolling:** Scrolling down in the chat annoyed me, so the text input box and the latest message are at the top now.
@@ -42,9 +49,11 @@ To get started with Local Multimodal AI Chat, clone the repository and follow th
 
 2. **Upgrade pip**: pip install --upgrade pip
 
-3. **Install Requirements**: pip install -r requirements.txt
+3. **Install Requirements**: 
+   1. Install pytroch from https://pytorch.org/
+   2. ```pip install -r requirements.txt```
    
-   **Note:** in requirements_with_versions.txt I saved the versions of the requirements while creating this project, and in pip_freeze.txt is a complete freeze of the packages in the environment I used. So if you encounter errors due to newer versions, you might want to consider using one of those requirements files, or at least the versions for the packages which make problems.
+   **Note:** In pip_freeze.txt is a complete freeze of the packages in the environment I used. So if you encounter errors due to newer versions, you might want to consider running ```pip install -r pip_freeze.txt```.
    
    **Windows Users:** The installation might differ a bit for you, if you encounter errors you can't solve, please open an Issue here on github.
 
@@ -53,13 +62,15 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 
 5. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
 
-6. **Enter command in terminal**: streamlit run app.py
+6. **Enter commands in terminal**: 
+   1. ```python3 database_operations.py``` This will initialize the sqlite database for the chat sessions.
+   2. ```streamlit run app.py```
 
 
 ## Possible Improvements
 - Add Model Caching.
-- Add Images and Audio to Chat History Saving and Loading.
-- Use a Database to Save the Chat History.
+- ~~Add Images and Audio to Chat History Saving and Loading.~~
+- ~~Use a Database to Save the Chat History.~~
 - Integrate Ollama, OpenAI, Gemini, or Other Model Providers.
 - Add Image Generator Model.
 - Authentication Mechanism.

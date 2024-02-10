@@ -6,13 +6,12 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import CTransformers
 from langchain_community.vectorstores import Chroma
+from utils import load_config
 import chromadb
-import yaml
 
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+config = load_config()
 
-def create_llm(model_path = config["model_path"]["large"], model_type = config["model_type"], model_config = config["model_config"]):
+def create_llm(model_path = config["ctransformers"]["model_path"]["large"], model_type = config["ctransformers"]["model_type"], model_config = config["ctransformers"]["model_config"]):
     llm = CTransformers(model=model_path, model_type=model_type, config=model_config)
     return llm
 
@@ -25,21 +24,18 @@ def create_chat_memory(chat_history):
 def create_prompt_from_template(template):
     return PromptTemplate.from_template(template)
 
-def create_llm_chain(llm, chat_prompt, memory):
-    return LLMChain(llm=llm, prompt=chat_prompt, memory=memory)
-
-def create_llm_chain_no_memory(llm, chat_prompt):
+def create_llm_chain(llm, chat_prompt):
     return LLMChain(llm=llm, prompt=chat_prompt)
     
 def load_normal_chain():
     return chatChain()
 
 def load_vectordb(embeddings):
-    persistent_client = chromadb.PersistentClient("chroma_db")
+    persistent_client = chromadb.PersistentClient(config["chromadb"]["chromadb_path"])
 
     langchain_chroma = Chroma(
         client=persistent_client,
-        collection_name="pdfs",
+        collection_name=config["chromadb"]["collection_name"],
         embedding_function=embeddings,
     )
 
@@ -67,8 +63,7 @@ class chatChain:
     def __init__(self):
         llm = create_llm()
         chat_prompt = create_prompt_from_template(memory_prompt_template)
-        self.llm_chain = create_llm_chain_no_memory(llm, chat_prompt)
+        self.llm_chain = create_llm_chain(llm, chat_prompt)
 
     def run(self, user_input, chat_history):
-        print(user_input)
         return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]

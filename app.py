@@ -13,10 +13,11 @@ import yaml
 with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
+@st.cache_resource
 def load_chain():
     if st.session_state.pdf_chat:
         print("loading pdf chat chain")
-        return load_pdf_chat_chain(chat_history=[])
+        return load_pdf_chat_chain()
     return load_normal_chain()
 
 def clear_input_field():
@@ -41,6 +42,8 @@ def delete_chat_session_history():
     delete_chat_history(st.session_state.session_key)
     st.session_state.session_index_tracker = "new_session"
 
+def clear_cache():
+    st.cache_resource.clear()
 
 def main():
     st.title("Multimodal Local Chat App")
@@ -53,6 +56,7 @@ def main():
         st.session_state.new_session_key = None
         st.session_state.session_index_tracker = "new_session"
         st.session_state.db_conn = sqlite3.connect(config["chat_sessions_database_path"], check_same_thread=False)
+        st.session_state.audio_uploader_key = 0
     if st.session_state.session_key == "new_session" and st.session_state.new_session_key != None:
         st.session_state.session_index_tracker = st.session_state.new_session_key
         st.session_state.new_session_key = None
@@ -64,6 +68,7 @@ def main():
     st.sidebar.selectbox("Select a chat session", chat_sessions, key="session_key", index=index)
     st.sidebar.toggle("PDF Chat", key="pdf_chat", value=False)
     st.sidebar.button("Delete Chat Session", on_click=delete_chat_session_history)
+    st.sidebar.button("Clear Cache", on_click=clear_cache)
     user_input = st.text_input("Type your message here", key="user_input", on_change=set_send_input)
 
     voice_recording=mic_recorder(start_prompt="Start recording",stop_prompt="Stop recording", just_once=True)
@@ -71,7 +76,7 @@ def main():
         
 
 
-    uploaded_audio = st.sidebar.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg"])
+    uploaded_audio = st.sidebar.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg"], key=st.session_state.audio_uploader_key)
     uploaded_image = st.sidebar.file_uploader("Upload an image file", type=["jpg", "jpeg", "png"])
     uploaded_pdf = st.sidebar.file_uploader("Upload a pdf file", accept_multiple_files=True, key="pdf_upload", type=["pdf"], on_change=toggle_pdf_chat)
 
@@ -83,15 +88,16 @@ def main():
         transcribed_audio = transcribe_audio(uploaded_audio.getvalue())
         print(transcribed_audio)
         llm_chain = load_chain()
-        llm_answer = llm_chain.run(user_input = "Summarize this text: " + transcribed_audio, chat_history=load_last_k_text_messages)
+        llm_answer = llm_chain.run(user_input = "Summarize this text: " + transcribed_audio, chat_history=[])
         save_audio_message(get_session_key(), "human", uploaded_audio.getvalue())
         save_text_message(get_session_key(), "ai", llm_answer)
+        st.session_state.audio_uploader_key += 1
 
     if voice_recording:
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
         llm_chain = load_chain()
-        llm_answer = llm_chain.run(user_input = transcribed_audio, chat_history=load_last_k_text_messages)
+        llm_answer = llm_chain.run(user_input = transcribed_audio, chat_history=load_last_k_text_messages(get_session_key(), 4))
         save_audio_message(get_session_key(), "human", voice_recording["bytes"])
         save_text_message(get_session_key(), "ai", llm_answer)
 
@@ -106,11 +112,9 @@ def main():
                 st.session_state.user_question = ""
 
 
-
-
         if st.session_state.user_question != "":
             llm_chain = load_chain()
-            llm_answer = llm_chain.run(user_input = st.session_state.user_question, chat_history=load_last_k_text_messages)
+            llm_answer = llm_chain.run(user_input = st.session_state.user_question, chat_history=load_last_k_text_messages(get_session_key(), 4))
             save_text_message(get_session_key(), "human", st.session_state.user_question)
             save_text_message(get_session_key(), "ai", llm_answer)
             st.session_state.user_question = ""
@@ -124,6 +128,9 @@ def main():
 
             for message in reversed(chat_history_messages):
                 st.write(get_media_template(message["content"], message["message_type"], message["sender_type"]), unsafe_allow_html=True)
+
+        if (st.session_state.session_key == "new_session") and (st.session_state.new_session_key != None):
+            st.rerun()
 
 if __name__ == "__main__":
     main()

@@ -1,16 +1,25 @@
-model_path:
-  small: "./models/mistral-7b-instruct-v0.1.Q3_K_M.gguf"
-  large:  "./models/mistral-7b-instruct-v0.1.Q5_K_M.gguf" 
+ctransformers:
+  model_path:
+    small: "./models/mistral-7b-instruct-v0.1.Q3_K_M.gguf"
+    large:  "./models/mistral-7b-instruct-v0.1.Q5_K_M.gguf" 
+  model_type: "mistral"
+  model_config: 
+    'max_new_tokens': 512
+    'temperature' : 0
+    'context_length': 4096
+    'gpu_layers' : 0
 
-model_type: "mistral"
+llava_model:
+  llava_model_path: "./models/llava/llava_ggml-model-q5_k.gguf"
+  clip_model_path: "./models/llava/mmproj-model-f16.gguf"
+
+whisper_model: "openai/whisper-small"
 
 embeddings_path: "BAAI/bge-large-en-v1.5"
 
-model_config: 
-  'max_new_tokens': 512
-  'temperature' : 0
-  'context_length': 4096
-  'gpu_layers' : 0
+chromadb:
+  chromadb_path: "chroma_db"
+  collection_name: "pdfs"
 
 chat_sessions_database_path: "./chat_sessions/chat_sessions.db"
 

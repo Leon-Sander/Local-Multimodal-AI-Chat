@@ -2,6 +2,8 @@ import torch
 from transformers import pipeline
 import librosa
 import io
+from utils import load_config
+config = load_config()
 
 def convert_bytes_to_array(audio_bytes):
     audio_bytes = io.BytesIO(audio_bytes)
@@ -10,15 +12,16 @@ def convert_bytes_to_array(audio_bytes):
     return audio
 
 def transcribe_audio(audio_bytes):
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-
+    #device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cpu"
     pipe = pipeline(
         task="automatic-speech-recognition",
-        model="openai/whisper-small",
+        model=config["whisper_model"],
         chunk_length_s=30,
         device=device,
     )   
 
     audio_array = convert_bytes_to_array(audio_bytes)
     prediction = pipe(audio_array, batch_size=1)["text"]
+
     return prediction

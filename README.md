@@ -1,23 +1,4 @@
 # Local Multimodal AI Chat
-
-## Changelog
-### 08.02.2024:
-
-- **SQLite Database for Chat History**: Implemented a SQLite database to store the chat history.
-- **Displaying Images and Audio Files in Chat**: Chat history now supports displaying images and audio files.
-- **Added Button to delete Chat History**
-- **Updated langchain**: Runs now with the current langchain version 0.1.6
-
-### 16.01.2024:
-- **Windows User DateTime Format Issue:** Windows users seemed to have problems with the datetime format of the saved JSON chat histories. I changed the format in the `ultis.py` file to `"%Y_%m_%d_%H_%M_%S"`, which should solve the issue. Feel free to change it to your liking.
-- **UI Adjustment for Chat Scrolling:** Scrolling down in the chat annoyed me, so the text input box and the latest message are at the top now.
-
-### 12.01.2024:
-- **Issue with Message Sending:** After writing in the text field and pressing the send button, the LLM would not generate a response. 
-- **Cause of the Issue:** This happened because the `clear_input_field` callback from the button changes the text field value to an empty string after saving the user question. However, changing the text field value triggers the callback from the text field widget, setting the `user_question` to an empty string again. As a result, the LLM is not called.
-- **Implemented Workaround:** As a workaround, I added a check before changing the `user_question` value.
-
-
 ## Overview
 
 Local Multimodal AI Chat is a hands-on project aimed at learning how to build a multimodal chat application. This project is all about integrating different AI models to handle audio, images, and PDFs in a single chat interface. It's a great way for anyone interested in AI and software development to get practical experience with these technologies.
@@ -67,8 +48,30 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
    2. ```streamlit run app.py```
 
 
+## Changelog
+### 10.02.2024:
+
+- **Caching for Chat Model**: Introduced caching for the chat model to prevent it from being reloaded with every script execution. This optimization significantly improves performance by reducing load times 
+- **Config File Expansion**: Expanded the configuration file to accommodate new settings and features, providing greater flexibility and customization options for the chat application.
+
+### 09.02.2024:
+
+- **SQLite Database for Chat History**: Implemented a SQLite database to store the chat history.
+- **Displaying Images and Audio Files in Chat**: Chat history now supports displaying images and audio files.
+- **Added Button to delete Chat History**
+- **Updated langchain**: Runs now with the current langchain version 0.1.6
+
+### 16.01.2024:
+- **Windows User DateTime Format Issue:** Windows users seemed to have problems with the datetime format of the saved JSON chat histories. I changed the format in the `ultis.py` file to `"%Y_%m_%d_%H_%M_%S"`, which should solve the issue. Feel free to change it to your liking.
+- **UI Adjustment for Chat Scrolling:** Scrolling down in the chat annoyed me, so the text input box and the latest message are at the top now.
+
+### 12.01.2024:
+- **Issue with Message Sending:** After writing in the text field and pressing the send button, the LLM would not generate a response. 
+- **Cause of the Issue:** This happened because the `clear_input_field` callback from the button changes the text field value to an empty string after saving the user question. However, changing the text field value triggers the callback from the text field widget, setting the `user_question` to an empty string again. As a result, the LLM is not called.
+- **Implemented Workaround:** As a workaround, I added a check before changing the `user_question` value.
+
 ## Possible Improvements
-- Add Model Caching.
+- ~~Add Model Caching.~~
 - ~~Add Images and Audio to Chat History Saving and Loading.~~
 - ~~Use a Database to Save the Chat History.~~
 - Integrate Ollama, OpenAI, Gemini, or Other Model Providers.

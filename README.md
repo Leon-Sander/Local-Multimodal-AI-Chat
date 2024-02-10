@@ -50,9 +50,10 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 
 ## Changelog
 ### 10.02.2024:
-
+- **License Added**: Implemented the GNU General Public License v3.0 to ensure the project is freely available for use, modification, and distribution under the terms of this license. A comprehensive copyright and license notice has been included in the main file (app.py) to clearly communicate the terms under which the project is offered. This addition aims to protect both the contributors' and users' rights, fostering an open and collaborative development environment. For full license details, refer to the LICENSE file in the project repository.
 - **Caching for Chat Model**: Introduced caching for the chat model to prevent it from being reloaded with every script execution. This optimization significantly improves performance by reducing load times 
 - **Config File Expansion**: Expanded the configuration file to accommodate new settings and features, providing greater flexibility and customization options for the chat application.
+
 
 ### 09.02.2024:
 
@@ -79,3 +80,10 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 - Authentication Mechanism.
 - Change Theme.
 - Separate Frontend and Backend Code for Better Deployment.
+
+## Contact Information
+
+For any questions, please contact me at:
+
+- Email: leonsander.consulting@gmail.com
+- Twitter: [@leonsanderai](https://twitter.com/leonsanderai)

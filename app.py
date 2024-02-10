@@ -106,7 +106,7 @@ def main():
                 if st.session_state.user_question != "":
                     user_message = st.session_state.user_question
                     st.session_state.user_question = ""
-                llm_answer = handle_image(uploaded_image.getvalue(), st.session_state.user_question)
+                llm_answer = handle_image(uploaded_image.getvalue(), user_message)
                 chat_history.add_user_message(user_message)
                 chat_history.add_ai_message(llm_answer)
 

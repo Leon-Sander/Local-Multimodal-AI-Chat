@@ -56,7 +56,7 @@ class pdfChatChain:
 
     def run(self, user_input, chat_history):
         print("Pdf chat chain is running...")
-        return self.llm_chain.invoke(input={"query" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]
+        return self.llm_chain.invoke(input={"query" : user_input, "history" : chat_history} ,stop=["Human:"])["result"]
 
 class chatChain:
 

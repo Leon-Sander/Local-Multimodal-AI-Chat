@@ -44,8 +44,8 @@ def load_vectordb(embeddings):
 def load_pdf_chat_chain():
     return pdfChatChain()
 
-def load_retrieval_chain(llm, memory, vector_db):
-    return RetrievalQA.from_llm(llm=llm, memory=memory, retriever=vector_db.as_retriever(kwargs={"k": 3}))
+def load_retrieval_chain(llm, vector_db):
+    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(kwargs={"k": 3}))
 
 class pdfChatChain:
 
@@ -56,7 +56,7 @@ class pdfChatChain:
 
     def run(self, user_input, chat_history):
         print("Pdf chat chain is running...")
-        return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]
+        return self.llm_chain.invoke(input={"query" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]
 
 class chatChain:
 

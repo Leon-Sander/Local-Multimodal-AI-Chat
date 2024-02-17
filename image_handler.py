@@ -11,9 +11,9 @@ def convert_bytes_to_base64(image_bytes):
 
 #@st.cache_resource # can be cached if you use it often
 def load_llava():
-    chat_handler = Llava15ChatHandler(clip_model_path=config["llava"]["clip_model_path"])
+    chat_handler = Llava15ChatHandler(clip_model_path=config["llava_model"]["clip_model_path"])
     llm = Llama(
-        model_path=config["llava"]["llava_model_path"],
+        model_path=config["llava_model"]["llava_model_path"],
         chat_handler=chat_handler,
         logits_all=True,
         n_ctx=1024 # n_ctx should be increased to accomodate the image embedding
@@ -40,14 +40,3 @@ def handle_image(image_bytes, user_message):
     )
     print(output)
     return output["choices"][0]["message"]["content"]
-
-def convert_image_to_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        encoded_string=  base64.b64encode(image_file.read()).decode("utf-8")
-        return "data:image/jpeg;base64," + encoded_string
-    
-if __name__ == "__main__":
-    image_path = "Image26.jpg"
-    image_base64 = convert_image_to_base64(image_path)
-    with open("image.txt", "w") as f:
-        f.write(image_base64)

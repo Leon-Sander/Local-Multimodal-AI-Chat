@@ -43,12 +43,18 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 
 5. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
 
-6. **Enter commands in terminal**: 
+6. **Optional - Change Profile Pictures**: Place your user_image.pnd and/or bot_image.png inside the chat_icons folder. 
+
+7. **Enter commands in terminal**: 
    1. ```python3 database_operations.py``` This will initialize the sqlite database for the chat sessions.
    2. ```streamlit run app.py```
 
 
 ## Changelog
+### 17.02.2024:
+- **Input Widget Update**: Replaced st.text_input with st.chat_input to enhance interaction by leveraging a more chat-oriented UI, facilitating user engagement.
+- **Sidebar Adjustment**: Relocated the audio recording button to the sidebar for a cleaner and more organized user interface, improving accessibility and user experience.
+
 ### 10.02.2024:
 - **License Added**: Implemented the GNU General Public License v3.0 to ensure the project is freely available for use, modification, and distribution under the terms of this license. A comprehensive copyright and license notice has been included in the main file (app.py) to clearly communicate the terms under which the project is offered. This addition aims to protect both the contributors' and users' rights, fostering an open and collaborative development environment. For full license details, refer to the LICENSE file in the project repository.
 - **Caching for Chat Model**: Introduced caching for the chat model to prevent it from being reloaded with every script execution. This optimization significantly improves performance by reducing load times 

@@ -17,9 +17,3 @@ css ="""
         }
     </style>
     """
-
-def get_avatar(sender_type):
-    if sender_type == "human":
-        return "chat_icons/user_image.png"
-    else:
-       return "chat_icons/bot_image.png"

@@ -34,6 +34,7 @@ def load_chain():
 
 def toggle_pdf_chat():
     st.session_state.pdf_chat = True
+    clear_cache()
 
 def get_session_key():
     if st.session_state.session_key == "new_session":

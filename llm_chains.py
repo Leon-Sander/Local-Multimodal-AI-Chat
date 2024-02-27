@@ -6,10 +6,15 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import CTransformers
 from langchain_community.vectorstores import Chroma
+from langchain_community.llms import Ollama
 from utils import load_config
 import chromadb
 
 config = load_config()
+
+def load_ollama_model():
+    llm = Ollama(model=config["ollama_model"])
+    return llm
 
 def create_llm(model_path = config["ctransformers"]["model_path"]["large"], model_type = config["ctransformers"]["model_type"], model_config = config["ctransformers"]["model_config"]):
     llm = CTransformers(model=model_path, model_type=model_type, config=model_config)
@@ -52,6 +57,7 @@ class pdfChatChain:
     def __init__(self):
         vector_db = load_vectordb(create_embeddings())
         llm = create_llm()
+        #llm = load_ollama_model()
         self.llm_chain = load_retrieval_chain(llm, vector_db)
 
     def run(self, user_input, chat_history):
@@ -62,6 +68,7 @@ class chatChain:
 
     def __init__(self):
         llm = create_llm()
+        #llm = load_ollama_model()
         chat_prompt = create_prompt_from_template(memory_prompt_template)
         self.llm_chain = create_llm_chain(llm, chat_prompt)
 

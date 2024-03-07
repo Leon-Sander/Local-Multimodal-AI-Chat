@@ -4,10 +4,13 @@ ctransformers:
     large:  "./models/mistral-7b-instruct-v0.1.Q5_K_M.gguf" 
   model_type: "mistral"
   model_config: 
-    'max_new_tokens': 512
-    'temperature' : 0
-    'context_length': 4096
-    'gpu_layers' : 0
+    'max_new_tokens': 256
+    'temperature' : 0.2
+    'context_length': 2048
+    'gpu_layers' : 0 #32 to put all layers on GPU
+    'threads' : -1
+
+ollama_model: "mistral_7b_q5"
 
 llava_model:
   llava_model_path: "./models/llava/llava_ggml-model-q5_k.gguf"

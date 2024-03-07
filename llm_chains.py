@@ -1,4 +1,4 @@
-from prompt_templates import memory_prompt_template
+from prompt_templates import memory_prompt_template, pdf_chat_prompt
 from langchain.chains import LLMChain
 from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
@@ -47,10 +47,10 @@ def load_vectordb(embeddings):
     return langchain_chroma
 
 def load_pdf_chat_chain():
-    return pdfChatChain()
+    return pdfChatChain2()
 
 def load_retrieval_chain(llm, vector_db):
-    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(kwargs={"k": 3}))
+    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(kwargs={"k": 3}), verbose=True)
 
 class pdfChatChain:
 
@@ -62,7 +62,7 @@ class pdfChatChain:
 
     def run(self, user_input, chat_history):
         print("Pdf chat chain is running...")
-        return self.llm_chain.invoke(input={"query" : user_input, "history" : chat_history} ,stop=["Human:"])["result"]
+        return self.llm_chain.invoke(input={"query" : user_input, "history" : chat_history} ,stop=["Human:"],verbose=True)["result"]
 
 class chatChain:
 
@@ -74,3 +74,18 @@ class chatChain:
 
     def run(self, user_input, chat_history):
         return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]
+    
+class pdfChatChain2:
+
+    def __init__(self):
+        self.vector_db = load_vectordb(create_embeddings())
+        llm = create_llm()
+        self.llm_chain = create_llm_chain(llm, create_prompt_from_template(pdf_chat_prompt))
+
+    def run(self, user_input, chat_history):
+        output = self.vector_db.similarity_search(user_input, k=3)
+        context = ""
+        for item in output:
+            context += item.page_content
+        print("Pdf chat chain is running...")
+        return self.llm_chain.invoke(input={"context" : context, "user_input" : user_input, "chat_history" : chat_history}, stop=["Context:","Question:"])["text"]

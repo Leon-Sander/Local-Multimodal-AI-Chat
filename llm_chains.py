@@ -7,6 +7,7 @@ from langchain.prompts import PromptTemplate
 from langchain_community.llms import CTransformers
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import Ollama
+from operator import itemgetter
 from utils import load_config
 import chromadb
 
@@ -47,10 +48,21 @@ def load_vectordb(embeddings):
     return langchain_chroma
 
 def load_pdf_chat_chain():
-    return pdfChatChain2()
+    return pdfChatChain()
 
 def load_retrieval_chain(llm, vector_db):
-    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(kwargs={"k": 3}), verbose=True)
+    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(search_kwargs={"k": 3}), verbose=True)
+
+def create_pdf_chat_runnable(llm, vector_db, prompt):
+    runnable = (
+        {
+        "context": itemgetter("human_input") | vector_db.as_retriever(search_kwargs={"k": 3}),
+        "human_input": itemgetter("human_input"),
+        "history" : itemgetter("history"),
+        }
+    | prompt | llm.bind(stop=["Human:"]) 
+    )
+    return runnable
 
 class pdfChatChain:
 
@@ -58,11 +70,12 @@ class pdfChatChain:
         vector_db = load_vectordb(create_embeddings())
         llm = create_llm()
         #llm = load_ollama_model()
-        self.llm_chain = load_retrieval_chain(llm, vector_db)
+        prompt = create_prompt_from_template(pdf_chat_prompt)
+        self.llm_chain = create_pdf_chat_runnable(llm, vector_db, prompt)
 
     def run(self, user_input, chat_history):
         print("Pdf chat chain is running...")
-        return self.llm_chain.invoke(input={"query" : user_input, "history" : chat_history} ,stop=["Human:"],verbose=True)["result"]
+        return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history})
 
 class chatChain:
 
@@ -74,18 +87,3 @@ class chatChain:
 
     def run(self, user_input, chat_history):
         return self.llm_chain.invoke(input={"human_input" : user_input, "history" : chat_history} ,stop=["Human:"])["text"]
-    
-class pdfChatChain2:
-
-    def __init__(self):
-        self.vector_db = load_vectordb(create_embeddings())
-        llm = create_llm()
-        self.llm_chain = create_llm_chain(llm, create_prompt_from_template(pdf_chat_prompt))
-
-    def run(self, user_input, chat_history):
-        output = self.vector_db.similarity_search(user_input, k=3)
-        context = ""
-        for item in output:
-            context += item.page_content
-        print("Pdf chat chain is running...")
-        return self.llm_chain.invoke(input={"context" : context, "user_input" : user_input, "chat_history" : chat_history}, stop=["Context:","Question:"])["text"]

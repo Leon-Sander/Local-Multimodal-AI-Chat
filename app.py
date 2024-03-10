@@ -103,7 +103,7 @@ def main():
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
         llm_chain = load_chain()
-        llm_answer = llm_chain.run(user_input = transcribed_audio, chat_history=load_last_k_text_messages(get_session_key(), 4))
+        llm_answer = llm_chain.run(user_input = transcribed_audio, chat_history=load_last_k_text_messages(get_session_key(), 2))
         save_audio_message(get_session_key(), "human", voice_recording["bytes"])
         save_text_message(get_session_key(), "ai", llm_answer)
 
@@ -120,7 +120,7 @@ def main():
 
         if user_input:
             llm_chain = load_chain()
-            llm_answer = llm_chain.run(user_input = user_input, chat_history=load_last_k_text_messages(get_session_key(), 4))
+            llm_answer = llm_chain.run(user_input = user_input, chat_history=load_last_k_text_messages(get_session_key(), 2))
             save_text_message(get_session_key(), "human", user_input)
             save_text_message(get_session_key(), "ai", llm_answer)
             user_input = None

@@ -83,7 +83,8 @@ def main():
     
     uploaded_audio = st.sidebar.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg"], key=st.session_state.audio_uploader_key)
     uploaded_image = st.sidebar.file_uploader("Upload an image file", type=["jpg", "jpeg", "png"])
-    uploaded_pdf = st.sidebar.file_uploader("Upload a pdf file", accept_multiple_files=True, key=st.session_state.pdf_uploader_key, type=["pdf"], on_change=toggle_pdf_chat)
+    uploaded_pdf = st.sidebar.file_uploader("Upload a pdf file", accept_multiple_files=True, 
+                                            key=st.session_state.pdf_uploader_key, type=["pdf"], on_change=toggle_pdf_chat)
 
     if uploaded_pdf:
         with st.spinner("Processing pdf..."):
@@ -103,7 +104,8 @@ def main():
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
         llm_chain = load_chain()
-        llm_answer = llm_chain.run(user_input = transcribed_audio, chat_history=load_last_k_text_messages(get_session_key(), 2))
+        llm_answer = llm_chain.run(user_input = transcribed_audio, 
+                                   chat_history=load_last_k_text_messages(get_session_key(), config["chat_config"]["chat_memory_length"]))
         save_audio_message(get_session_key(), "human", voice_recording["bytes"])
         save_text_message(get_session_key(), "ai", llm_answer)
 
@@ -120,7 +122,8 @@ def main():
 
         if user_input:
             llm_chain = load_chain()
-            llm_answer = llm_chain.run(user_input = user_input, chat_history=load_last_k_text_messages(get_session_key(), 2))
+            llm_answer = llm_chain.run(user_input = user_input, 
+                                       chat_history=load_last_k_text_messages(get_session_key(), config["chat_config"]["chat_memory_length"]))
             save_text_message(get_session_key(), "human", user_input)
             save_text_message(get_session_key(), "ai", llm_answer)
             user_input = None

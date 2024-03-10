@@ -51,12 +51,12 @@ def load_pdf_chat_chain():
     return pdfChatChain()
 
 def load_retrieval_chain(llm, vector_db):
-    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(search_kwargs={"k": 3}), verbose=True)
+    return RetrievalQA.from_llm(llm=llm, retriever=vector_db.as_retriever(search_kwargs={"k": config["chat_config"]["number_of_retrieved_documents"]}), verbose=True)
 
 def create_pdf_chat_runnable(llm, vector_db, prompt):
     runnable = (
         {
-        "context": itemgetter("human_input") | vector_db.as_retriever(search_kwargs={"k": 3}),
+        "context": itemgetter("human_input") | vector_db.as_retriever(search_kwargs={"k": config["chat_config"]["number_of_retrieved_documents"]}),
         "human_input": itemgetter("human_input"),
         "history" : itemgetter("history"),
         }

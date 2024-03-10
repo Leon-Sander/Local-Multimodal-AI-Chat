@@ -4,7 +4,7 @@ memory_prompt_template = """<s>[INST] You are an AI chatbot having a conversatio
     AI:"""
 
 pdf_chat_prompt = """<s>[INST] Answer the user question based on the given context. Also consider the chat history.[/INST]
-Chat history: {chat_history}
+Chat history: {history}
 Context: {context}
-Question: {user_input}
+Question: {human_input}
 Answer:"""

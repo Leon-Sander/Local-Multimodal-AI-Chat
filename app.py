@@ -70,7 +70,7 @@ def main():
     index = chat_sessions.index(st.session_state.session_index_tracker)
     st.sidebar.selectbox("Select a chat session", chat_sessions, key="session_key", index=index)
     pdf_toggle_col, voice_rec_col = st.sidebar.columns(2)
-    pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False)
+    pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False, on_change=clear_cache)
     with voice_rec_col:
         voice_recording=mic_recorder(start_prompt="Record Audio",stop_prompt="Stop recording", just_once=True)
     delete_chat_col, clear_cache_col = st.sidebar.columns(2)

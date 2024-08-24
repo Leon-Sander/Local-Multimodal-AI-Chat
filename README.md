@@ -1,4 +1,39 @@
 # Local Multimodal AI Chat
+## Getting Started
+
+To get started with Local Multimodal AI Chat, clone the repository and follow these simple steps:
+
+### Easiest Method: Docker Compose
+1. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
+And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) from TheBloke (mistral-7b-instruct-v0.1.Q5_K_M.gguf).
+
+2. **Enter command in terminal**: ```docker compose up```
+
+3. **Start Chatting**: Open [0.0.0.0:8501](http://0.0.0.0:8501) in the Browser
+
+
+### Local Method
+
+1. **Create a Virtual Environment**: I am using Python 3.10.12 currently
+
+2. **Upgrade pip**: ```pip install --upgrade pip```
+
+3. **Install Requirements**: ```pip install -r requirements.txt```
+   
+   **Windows Users:** The installation might differ a bit for you, if you encounter errors you can't solve, please open an Issue here on github.
+
+4. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
+And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) from TheBloke (mistral-7b-instruct-v0.1.Q5_K_M.gguf).
+
+5. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
+
+6. **Optional - Change Profile Pictures**: Place your user_image.pnd and/or bot_image.png inside the chat_icons folder. 
+
+7. **Enter commands in terminal**: 
+   1. ```python3 database_operations.py``` This will initialize the sqlite database for the chat sessions.
+   2. ```streamlit run app.py```
+
+
 ## Overview
 
 Local Multimodal AI Chat is a hands-on project aimed at learning how to build a multimodal chat application. This project is all about integrating different AI models to handle audio, images, and PDFs in a single chat interface. It's a great way for anyone interested in AI and software development to get practical experience with these technologies.
@@ -21,32 +56,11 @@ So, if you're interested in AI chat applications and want to dive into how they'
 
 - **PDF Chatting with Chroma DB**: The app is tailored for both professional and academic uses, integrating Chroma DB as a vector database for efficient PDF interactions. This feature allows users to engage with their own PDF files locally on their device. Whether it's for reviewing business reports, academic papers, or any other PDF document, the app offers a seamless experience. It provides an effective way for users to interact with their PDFs, leveraging the power of AI to understand and respond to content within these documents. This makes it a valuable tool for personal use, where one can extract insights, summaries, and engage in a unique form of dialogue with the text in their PDF files. [Chroma website](https://docs.trychroma.com/)
 
-
-## Getting Started
-
-To get started with Local Multimodal AI Chat, clone the repository and follow these simple steps:
-
-1. **Create a Virtual Environment**: I am using Python 3.10.12 currently
-
-2. **Upgrade pip**: ```pip install --upgrade pip```
-
-3. **Install Requirements**: ```pip install -r requirements.txt```
-   
-   **Windows Users:** The installation might differ a bit for you, if you encounter errors you can't solve, please open an Issue here on github.
-
-4. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
-And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) form TheBloke (mistral-7b-instruct-v0.1.Q5_K_M.gguf).
-
-5. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
-
-6. **Optional - Change Profile Pictures**: Place your user_image.pnd and/or bot_image.png inside the chat_icons folder. 
-
-7. **Enter commands in terminal**: 
-   1. ```python3 database_operations.py``` This will initialize the sqlite database for the chat sessions.
-   2. ```streamlit run app.py```
-
-
 ## Changelog
+
+### 24.08.2024:
+- **Docker Compose Added**
+
 ### 17.02.2024:
 - **Input Widget Update**: Replaced st.text_input with st.chat_input to enhance interaction by leveraging a more chat-oriented UI, facilitating user engagement.
 - **Sidebar Adjustment**: Relocated the audio recording button to the sidebar for a cleaner and more organized user interface, improving accessibility and user experience.

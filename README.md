@@ -7,9 +7,13 @@ To get started with Local Multimodal AI Chat, clone the repository and follow th
 1. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
 And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) from TheBloke (mistral-7b-instruct-v0.1.Q5_K_M.gguf).
 
-2. **Enter command in terminal**: ```docker compose up```
+2. **Customize config file**: Check the config file and change model paths accordingly for the models you downloaded.
 
-3. **Start Chatting**: Open [0.0.0.0:8501](http://0.0.0.0:8501) in the Browser
+3. **Enter command in terminal**: ```docker compose up```
+   
+   Note: If you don't have a GPU, you can remove the deploy section from the docker compose file.
+
+4. **Start Chatting**: Open [0.0.0.0:8501](http://0.0.0.0:8501) in the Browser
 
 
 ### Local Method
@@ -25,7 +29,7 @@ And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Ins
 4. **Setting Up Local Models**: Download the models you want to implement. [Here](https://huggingface.co/mys/ggml_llava-v1.5-7b/tree/main) is the llava model I used for image chat (ggml-model-q5_k.gguf and mmproj-model-f16.gguf). 
 And the [quantized mistral model](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) from TheBloke (mistral-7b-instruct-v0.1.Q5_K_M.gguf).
 
-5. **Customize config file**: Check the config file and change accordingly to the models you downloaded.
+5. **Customize config file**: Check the config file and change model paths accordingly for the models you downloaded.
 
 6. **Optional - Change Profile Pictures**: Place your user_image.pnd and/or bot_image.png inside the chat_icons folder. 
 

@@ -66,8 +66,13 @@ def main():
 
     st.sidebar.title("Chat Sessions")
     chat_sessions = ["new_session"] + get_all_chat_history_ids()
+    try:
+        index = chat_sessions.index(st.session_state.session_index_tracker)
+    except ValueError:
+        st.session_state.session_index_tracker = "new_session"
+        index = chat_sessions.index(st.session_state.session_index_tracker)
+        clear_cache()
 
-    index = chat_sessions.index(st.session_state.session_index_tracker)
     st.sidebar.selectbox("Select a chat session", chat_sessions, key="session_key", index=index)
     pdf_toggle_col, voice_rec_col = st.sidebar.columns(2)
     pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False, on_change=clear_cache)

@@ -1,6 +1,24 @@
 from datetime import datetime
 import base64
 import yaml
+import requests
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+
+def list_openai_models():
+    response = requests.get("https://api.openai.com/v1/models", headers={"Authorization": f"Bearer {os.getenv("OPENAI_API_KEY")}"}).json()
+    if response.get("error", False):
+        return [item["id"] for item in response["data"]]
+    else:
+        return ["gpt-4o-mini"]
+
+
+def list_ollama_models():
+    json_response = requests.get(url = "http://ollama:11434/api/tags").json()
+    models = [model["name"] for model in json_response["models"] if "embed" not in model["name"]]
+    return models
 
 def load_config(file_path = "config.yaml"):
     with open(file_path, "r") as f:

@@ -21,6 +21,7 @@ from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
 from html_templates import css
 from database_operations import load_last_k_text_messages, save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama
+from utils import list_openai_models, list_ollama_models
 import sqlite3
 import requests
 config = load_config()
@@ -42,16 +43,11 @@ def delete_chat_session_history():
 def clear_cache():
     st.cache_resource.clear()
 
-def list_ollama_models():
-    json_response = requests.get(url = "http://ollama:11434/api/tags").json()
-    models = [model["name"] for model in json_response["models"] if "embed" not in model["name"]]
-    return models
-
 def list_model_options():
     if st.session_state.endpoint_to_use == "ollama":
         return list_ollama_models()
     elif st.session_state.endpoint_to_use == "openai":
-        return ["gpt-4o-mini"]
+        return list_openai_models()
 
 def update_model_options():
     st.session_state.model_options = list_model_options()

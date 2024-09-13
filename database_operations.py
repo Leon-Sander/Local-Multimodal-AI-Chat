@@ -131,5 +131,30 @@ def init_db():
     conn.commit()
     conn.close()
 
+def load_last_k_text_messages_ollama(chat_history_id, k):
+    conn, cursor = get_db_connection_and_cursor()
+
+    query = """
+    SELECT message_id, sender_type, message_type, text_content, blob_content
+    FROM messages
+    WHERE chat_history_id = ? AND message_type = 'text' 
+    ORDER BY message_id DESC
+    LIMIT ?
+    """
+    #OR message_type = 'image'
+    cursor.execute(query, (chat_history_id, k))
+
+    messages = cursor.fetchall()
+    chat_history = []
+    for message in reversed(messages):
+        message_id, sender_type, message_type, text_content, blob_content = message
+        chat_history.append({
+            'role': sender_type,
+            'content': text_content
+        })
+
+
+    return chat_history
+
 if __name__ == "__main__":
     init_db()

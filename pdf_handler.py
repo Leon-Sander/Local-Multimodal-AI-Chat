@@ -1,6 +1,6 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
-from llm_chains import load_vectordb, create_embeddings
+from vectordb_handler import load_vectordb
 from utils import load_config
 import pypdfium2
 config = load_config()
@@ -28,6 +28,6 @@ def get_document_chunks(text_list):
 def add_documents_to_db(pdfs_bytes):
     texts = get_pdf_texts(pdfs_bytes)
     documents = get_document_chunks(texts)
-    vector_db = load_vectordb(create_embeddings())
+    vector_db = load_vectordb()
     vector_db.add_documents(documents)
     print("Documents added to db.")

@@ -7,12 +7,22 @@ services:
       - ./:/app
     ports:
       - "8501:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
     command: /bin/sh -c "python3 database_operations.py && streamlit run app.py"
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - /path/to/ollama/models:/root/.ollama  # Update with the path to your ollama model storage
+    # remove deploy and runtime if you are not using a GPU
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    
+            - capabilities: [gpu]
+    runtime: nvidia

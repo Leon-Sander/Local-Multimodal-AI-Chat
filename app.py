@@ -14,23 +14,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import streamlit as st
-from llm_chains import load_normal_chain, load_pdf_chat_chain
+from chat_api_handler import ChatAPIHandler
 from streamlit_mic_recorder import mic_recorder
 from utils import get_timestamp, load_config, get_avatar
-from image_handler import handle_image
 from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
 from html_templates import css
-from database_operations import load_last_k_text_messages, save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history
+from database_operations import load_last_k_text_messages, save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama
 import sqlite3
+import requests
 config = load_config()
-
-@st.cache_resource
-def load_chain():
-    if st.session_state.pdf_chat:
-        print("loading pdf chat chain")
-        return load_pdf_chat_chain()
-    return load_normal_chain()
 
 def toggle_pdf_chat():
     st.session_state.pdf_chat = True
@@ -49,6 +42,20 @@ def delete_chat_session_history():
 def clear_cache():
     st.cache_resource.clear()
 
+def list_ollama_models():
+    json_response = requests.get(url = "http://ollama:11434/api/tags").json()
+    models = [model["name"] for model in json_response["models"] if "embed" not in model["name"]]
+    return models
+
+def list_model_options():
+    if st.session_state.endpoint_to_use == "ollama":
+        return list_ollama_models()
+    elif st.session_state.endpoint_to_use == "openai":
+        return ["gpt-4o-mini"]
+
+def update_model_options():
+    st.session_state.model_options = list_model_options()
+
 def main():
     st.title("Multimodal Local Chat App")
     st.write(css, unsafe_allow_html=True)
@@ -60,6 +67,8 @@ def main():
         st.session_state.db_conn = sqlite3.connect(config["chat_sessions_database_path"], check_same_thread=False)
         st.session_state.audio_uploader_key = 0
         st.session_state.pdf_uploader_key = 1
+        st.session_state.endpoint_to_use = "ollama"
+        st.session_state.model_options = list_model_options()
     if st.session_state.session_key == "new_session" and st.session_state.new_session_key != None:
         st.session_state.session_index_tracker = st.session_state.new_session_key
         st.session_state.new_session_key = None
@@ -74,6 +83,9 @@ def main():
         clear_cache()
 
     st.sidebar.selectbox("Select a chat session", chat_sessions, key="session_key", index=index)
+    api_col, model_col = st.sidebar.columns(2)
+    api_col.selectbox(label="Select an API", options = ["ollama","openai"], key="endpoint_to_use", on_change=update_model_options)
+    model_col.selectbox(label="Select a Model", options = st.session_state.model_options, key="model_to_use")
     pdf_toggle_col, voice_rec_col = st.sidebar.columns(2)
     pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False, on_change=clear_cache)
     with voice_rec_col:
@@ -99,38 +111,36 @@ def main():
     if uploaded_audio:
         transcribed_audio = transcribe_audio(uploaded_audio.getvalue())
         print(transcribed_audio)
-        llm_chain = load_chain()
-        llm_answer = llm_chain.run(user_input = "Summarize this text: " + transcribed_audio, chat_history=[])
-        save_audio_message(get_session_key(), "human", uploaded_audio.getvalue())
-        save_text_message(get_session_key(), "ai", llm_answer)
+        llm_answer = ChatAPIHandler.chat(user_input = "Summarize this text: " + transcribed_audio, chat_history=[])
+        save_audio_message(get_session_key(), "user", uploaded_audio.getvalue())
+        save_text_message(get_session_key(), "assistant", llm_answer)
         st.session_state.audio_uploader_key += 2
 
     if voice_recording:
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
-        llm_chain = load_chain()
-        llm_answer = llm_chain.run(user_input = transcribed_audio, 
-                                   chat_history=load_last_k_text_messages(get_session_key(), config["chat_config"]["chat_memory_length"]))
-        save_audio_message(get_session_key(), "human", voice_recording["bytes"])
-        save_text_message(get_session_key(), "ai", llm_answer)
+        #llm_chain = load_chain()
+        llm_answer = ChatAPIHandler.chat(user_input = transcribed_audio, 
+                                   chat_history=load_last_k_text_messages_ollama(get_session_key(), config["chat_config"]["chat_memory_length"]))
+        save_audio_message(get_session_key(), "user", voice_recording["bytes"])
+        save_text_message(get_session_key(), "assistant", llm_answer)
 
     
     if user_input:
         if uploaded_image:
             with st.spinner("Processing image..."):
-                llm_answer = handle_image(uploaded_image.getvalue(), user_input)
-                save_text_message(get_session_key(), "human", user_input)
-                save_image_message(get_session_key(), "human", uploaded_image.getvalue())
-                save_text_message(get_session_key(), "ai", llm_answer)
+                llm_answer = ChatAPIHandler.chat(user_input = user_input, chat_history = [], image = uploaded_image.getvalue())
+                save_text_message(get_session_key(), "user", user_input)
+                save_image_message(get_session_key(), "user", uploaded_image.getvalue())
+                save_text_message(get_session_key(), "assistant", llm_answer)
                 user_input = None
 
 
         if user_input:
-            llm_chain = load_chain()
-            llm_answer = llm_chain.run(user_input = user_input, 
-                                       chat_history=load_last_k_text_messages(get_session_key(), config["chat_config"]["chat_memory_length"]))
-            save_text_message(get_session_key(), "human", user_input)
-            save_text_message(get_session_key(), "ai", llm_answer)
+            llm_answer = ChatAPIHandler.chat(user_input = user_input, 
+                                       chat_history=load_last_k_text_messages_ollama(get_session_key(), config["chat_config"]["chat_memory_length"]))
+            save_text_message(get_session_key(), "user", user_input)
+            save_text_message(get_session_key(), "assistant", llm_answer)
             user_input = None
 
 

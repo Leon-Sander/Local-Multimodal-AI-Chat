@@ -12,13 +12,12 @@ load_dotenv()
 def command(user_input):
     splitted_input = user_input.split(" ")
     if splitted_input[0] == "/pull":
-        pull_model_in_background(splitted_input[1])
-        return f"Pulling {splitted_input[1]}..."
+        return pull_model_in_background(splitted_input[1])
     elif splitted_input[0] == "/help":
-        return "Possible commands: /pull <model_name>"
+        return "Possible commands:\n- /pull <model_name>"
     else:    
-        return """Invalid command, please use one of the following:
-                    - /help
+        return """Invalid command, please use one of the following:\n
+                    - /help\n
                     - /pull <model_name>"""
 
 def pull_ollama_model(model_name):
@@ -45,14 +44,16 @@ async def pull_ollama_model_async(model_name, stream = True):
                         st.info(f"Received chunk: {chunk.decode('utf-8')}")
             else:
                 json_response = await response.json()
+                print(json_response)
+                with open("pull_response.txt", "w") as f:
+                    f.write(str(json_response))
 
                 if json_response.get("error", False):
                     return json_response["error"]
                 else:
                     # Update session state and notify the user once the model is pulled
                     st.session_state.model_options = list_ollama_models()
-                    st.warning(f"Pulling {model_name} finished.")
-                    return json_response
+                    return f"Pull of {model_name} finished."
                 
             return "Pulled"
 
@@ -64,12 +65,14 @@ def pull_model_in_background(model_name, stream=False):
     except RuntimeError:  # If no loop is running, start a new one
         loop = None
 
+    #st.info(f"Pulling {model_name}...")
+
     if loop and loop.is_running():
         # If an event loop is already running, create a task for the async function
-        asyncio.create_task(pull_ollama_model_async(model_name, stream=stream))
+        return asyncio.create_task(pull_ollama_model_async(model_name, stream=stream))
     else:
         # Otherwise, use asyncio.run() to run it synchronously
-        asyncio.run(pull_ollama_model_async(model_name, stream=stream))
+        return asyncio.run(pull_ollama_model_async(model_name, stream=stream))
 
 
 

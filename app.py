@@ -20,8 +20,8 @@ from utils import get_timestamp, load_config, get_avatar
 from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
 from html_templates import css
-from database_operations import load_last_k_text_messages, save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama
-from utils import list_openai_models, list_ollama_models
+from database_operations import save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama
+from utils import list_openai_models, list_ollama_models, command
 import sqlite3
 import requests
 config = load_config()
@@ -45,7 +45,11 @@ def clear_cache():
 
 def list_model_options():
     if st.session_state.endpoint_to_use == "ollama":
-        return list_ollama_models()
+        ollama_options = list_ollama_models()
+        if ollama_options == []:
+            #save_text_message(get_session_key(), "assistant", "No models available, please choose one from https://ollama.com/library and pull with /pull <model_name>")
+            st.warning("No ollama models available, please choose one from https://ollama.com/library and pull with /pull <model_name>")
+        return ollama_options
     elif st.session_state.endpoint_to_use == "openai":
         return list_openai_models()
 
@@ -123,6 +127,12 @@ def main():
 
     
     if user_input:
+        if user_input.startswith("/"):
+            response = command(user_input)
+            save_text_message(get_session_key(), "user", user_input)
+            save_text_message(get_session_key(), "assistant", response)
+            user_input = None
+
         if uploaded_image:
             with st.spinner("Processing image..."):
                 llm_answer = ChatAPIHandler.chat(user_input = user_input, chat_history = [], image = uploaded_image.getvalue())

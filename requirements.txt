@@ -1,15 +1,10 @@
 chromadb==0.5.3
-#ctransformers==0.2.27
-#InstructorEmbedding==1.0.1
 langchain==0.2.16
-#langchain-experimental==0.0.65
 langchain-ollama==0.1.3
 langchain-chroma==0.1.3
-#llama-cpp-python==0.2.20
 librosa==0.10.2.post1
 pypdfium2==4.30.0
 pyyaml==6.0.2
-#sentence-transformers==2.3.1
 streamlit==1.38.0
 streamlit-mic-recorder==0.0.8
 transformers==4.44.2

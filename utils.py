@@ -45,8 +45,6 @@ async def pull_ollama_model_async(model_name, stream = True):
             else:
                 json_response = await response.json()
                 print(json_response)
-                with open("pull_response.txt", "w") as f:
-                    f.write(str(json_response))
 
                 if json_response.get("error", False):
                     return json_response["error"]

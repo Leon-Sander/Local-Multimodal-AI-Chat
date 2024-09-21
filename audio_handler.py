@@ -1,7 +1,7 @@
 from transformers import pipeline
 import librosa
 import io
-from utils import load_config
+from utils import load_config, timeit
 config = load_config()
 
 def convert_bytes_to_array(audio_bytes):
@@ -10,6 +10,7 @@ def convert_bytes_to_array(audio_bytes):
     print(sample_rate)
     return audio
 
+@timeit
 def transcribe_audio(audio_bytes):
     #device = "cuda:0" if torch.cuda.is_available() else "cpu"
     device = "cpu"

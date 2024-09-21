@@ -1,7 +1,7 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from vectordb_handler import load_vectordb
-from utils import load_config
+from utils import load_config, timeit
 import pypdfium2
 config = load_config()
 
@@ -25,6 +25,7 @@ def get_document_chunks(text_list):
             documents.append(Document(page_content = chunk))
     return documents
 
+@timeit
 def add_documents_to_db(pdfs_bytes):
     texts = get_pdf_texts(pdfs_bytes)
     documents = get_document_chunks(texts)

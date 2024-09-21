@@ -1,4 +1,4 @@
-from utils import convert_bytes_to_base64_with_prefix, load_config, convert_bytes_to_base64
+from utils import convert_bytes_to_base64_with_prefix, load_config, convert_bytes_to_base64, convert_ns_to_seconds
 from vectordb_handler import load_vectordb
 from dotenv import load_dotenv
 import streamlit as st
@@ -61,13 +61,30 @@ class OllamaChatAPIHandler:
         json_response = response.json()
         if "error" in json_response.keys():
             return "OLLAMA ERROR: " + json_response["error"]
-        return response.json()["message"]["content"]
+        cls.print_times(json_response)
+        return json_response["message"]["content"]
         
     @classmethod
     def image_chat(cls, user_input, chat_history, image):
         chat_history.append({"role": "user", "content": user_input, "images": [convert_bytes_to_base64(image)]})
         return cls.api_call(chat_history)
     
+    @classmethod
+    def print_times(cls, json_response):        
+        total_duration_ns = json_response.get("total_duration", 0)
+        load_duration_ns = json_response.get("load_duration", 0)
+        prompt_eval_duration_ns = json_response.get("prompt_eval_duration", 0)
+        eval_duration_ns = json_response.get("eval_duration", 0)
+        
+        total_duration_seconds = convert_ns_to_seconds(total_duration_ns)
+        load_duration_seconds = convert_ns_to_seconds(load_duration_ns)
+        prompt_eval_duration_seconds = convert_ns_to_seconds(prompt_eval_duration_ns)
+        eval_duration_seconds = convert_ns_to_seconds(eval_duration_ns)
+        
+        print(f"Total duration: {total_duration_seconds:.4f} seconds")
+        print(f"Load duration: {load_duration_seconds:.4f} seconds")
+        print(f"Prompt eval duration: {prompt_eval_duration_seconds:.4f} seconds")
+        print(f"Eval duration: {eval_duration_seconds:.4f} seconds")
 
 class ChatAPIHandler:
 

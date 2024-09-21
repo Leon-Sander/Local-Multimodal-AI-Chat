@@ -7,7 +7,21 @@ import streamlit as st
 import os
 import aiohttp
 import asyncio
+import time
 load_dotenv()
+
+def convert_ns_to_seconds(ns_value):
+    return ns_value / 1_000_000_000 
+
+def timeit(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Function '{func.__name__}' executed in {execution_time:.4f} seconds")
+        return result
+    return wrapper
 
 def command(user_input):
     splitted_input = user_input.split(" ")

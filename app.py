@@ -23,12 +23,14 @@ from html_templates import css
 from database_operations import save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama
 from utils import list_openai_models, list_ollama_models, command
 import sqlite3
-import requests
 config = load_config()
 
 def toggle_pdf_chat():
     st.session_state.pdf_chat = True
     clear_cache()
+
+def detoggle_pdf_chat():
+    st.session_state.pdf_chat = False
 
 def get_session_key():
     if st.session_state.session_key == "new_session":
@@ -100,7 +102,7 @@ def main():
     
     uploaded_pdf = st.sidebar.file_uploader("Upload a pdf file", accept_multiple_files=True, 
                                         key=st.session_state.pdf_uploader_key, type=["pdf"], on_change=toggle_pdf_chat)
-    uploaded_image = st.sidebar.file_uploader("Upload an image file", type=["jpg", "jpeg", "png"])
+    uploaded_image = st.sidebar.file_uploader("Upload an image file", type=["jpg", "jpeg", "png"], on_change=detoggle_pdf_chat)
     uploaded_audio = st.sidebar.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg"], key=st.session_state.audio_uploader_key)
 
     if uploaded_pdf:

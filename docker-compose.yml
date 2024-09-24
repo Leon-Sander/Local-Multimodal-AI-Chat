@@ -19,6 +19,9 @@ services:
       - "11434:11434"
     volumes:
       - /path/to/ollama/models:/root/.ollama # Update with the path to your ollama model storage
+    environment:
+      - OLLAMA_LOAD_TIMEOUT=15m # increase if you get a Timeout Error
+
     # remove deploy and runtime if you are not using a GPU
     deploy:
       resources:

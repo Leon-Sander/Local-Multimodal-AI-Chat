@@ -8,3 +8,4 @@ pyyaml==6.0.2
 streamlit==1.38.0
 streamlit-mic-recorder==0.0.8
 transformers==4.44.2
+pydub==0.25.1

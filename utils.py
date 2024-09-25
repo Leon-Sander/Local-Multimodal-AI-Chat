@@ -44,30 +44,35 @@ def pull_ollama_model(model_name):
         st.warning(f"Pulling {model_name} finished.")
         return json_response
 
-async def pull_ollama_model_async(model_name, stream = True):
+async def pull_ollama_model_async(model_name, stream=True, retries=1):
     url = "http://ollama:11434/api/pull"
     json_data = {"model": model_name, "stream": stream}
     
-    # Use aiohttp to send an async POST request
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=json_data) as response:
-            if stream:
-                # Handle streaming response
-                async for chunk in response.content.iter_chunked(1024):  # Process in 1KB chunks
-                    if chunk:
-                        st.info(f"Received chunk: {chunk.decode('utf-8')}")
-            else:
-                json_response = await response.json()
-                print(json_response)
+    for attempt in range(retries):
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1800)) as session:  # Increased timeout for model pulling
+                async with session.post(url, json=json_data) as response:
+                    if stream:
+                        # Handle streaming response
+                        async for chunk in response.content.iter_chunked(1024):
+                            if chunk:
+                                st.info(f"Received chunk: {chunk.decode('utf-8')}")
+                    else:
+                        json_response = await response.json()
+                        print(json_response)
 
-                if json_response.get("error", False):
-                    return json_response["error"]
-                else:
-                    # Update session state and notify the user once the model is pulled
-                    st.session_state.model_options = list_ollama_models()
-                    return f"Pull of {model_name} finished."
-                
-            return "Pulled"
+                        if json_response.get("error", False):
+                            return json_response["error"]
+                        else:
+                            st.session_state.model_options = list_ollama_models()
+                            return f"Pull of {model_name} finished."
+                    return "Pulled"
+        except asyncio.TimeoutError:
+            st.warning(f"Timeout on attempt {attempt + 1}. Retrying...")
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
+            break  # Break on non-timeout errors
+    return f"Failed to pull {model_name} after {retries} attempts."
 
 # Function to trigger the async pull (can be run in the event loop)
 def pull_model_in_background(model_name, stream=False):

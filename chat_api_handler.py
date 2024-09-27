@@ -55,7 +55,7 @@ class OllamaChatAPIHandler:
             "messages" : chat_history,
             "stream" : False
         }
-        response = requests.post(url="http://ollama:11434/api/chat", 
+        response = requests.post(url=config["ollama"]["base_url"] + "/api/chat", 
                                  json=data)
         print(response.json())
         json_response = response.json()

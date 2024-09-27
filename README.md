@@ -20,7 +20,33 @@ To get started with Local Multimodal AI Chat, clone the repository and follow th
 You need one embedding model e.g. [nomic-embed-text](https://ollama.com/library/nomic-embed-text) to embed pdf files (change embedding model in config if you choose another). You also need a model which undertands 
 images e.g. [llava](https://ollama.com/library/llava) 
 
-### Manual Install
+6. **Optional**: 
+   - Check the config.yaml file and change accordingly to your needs.
+   - Place your user_image.png and/or bot_image.png inside the chat_icons folder and remove the old ones. 
+
+### Recommendation for Windows
+Using ollama docker container results in very slow loading times for the models due to system calls being translated between two kernels. Installing Ollama locally works best here.
+
+
+1. **Install [Ollama](https://ollama.com/download) desktop**
+
+2. **Change Docker Compose file**: remove docker-compose.yml and rename docker-compose_without_ollama.yml to docker-compose.yml
+
+3. **Change Ollama Base URL in config.yaml**: Use line 4 in the config.yaml file and remove line 3
+
+3. **Enter command in terminal**: ```docker compose up```
+
+4. **Open the app**: Open [0.0.0.0:8501](http://0.0.0.0:8501) in the Browser
+
+5. **Pull Models**: Go to https://ollama.com/library and choose the models you want to use. Enter ```/pull MODEL_NAME``` in the chat bar. 
+You need one embedding model e.g. [nomic-embed-text](https://ollama.com/library/nomic-embed-text) to embed pdf files (change embedding model in config if you choose another). You also need a model which undertands 
+images e.g. [llava](https://ollama.com/library/llava) 
+
+6. **Optional**: 
+   - Check the config.yaml file and change accordingly to your needs.
+   - Place your user_image.png and/or bot_image.png inside the chat_icons folder and remove the old ones. 
+
+### Complete Manual Install
 
 1. **Install [Ollama](https://github.com/ollama/ollama)**
 

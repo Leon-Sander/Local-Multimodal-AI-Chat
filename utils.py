@@ -10,6 +10,14 @@ import asyncio
 import time
 load_dotenv()
 
+
+def load_config(file_path = "config.yaml"):
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)
+    
+config = load_config()
+
+
 def convert_ns_to_seconds(ns_value):
     return ns_value / 1_000_000_000 
 
@@ -35,7 +43,7 @@ def command(user_input):
                     - /pull <model_name>"""
 
 def pull_ollama_model(model_name):
-    json_response = requests.post(url = f"http://ollama:11434/api/pull", json = {"model": model_name}).json()
+    json_response = requests.post(url = config["ollama"]["base_url"] + "/api/pull", json = {"model": model_name}).json()
     print(json_response)
     if "error" in json_response.keys():
         return json_response["error"]["message"]
@@ -45,7 +53,7 @@ def pull_ollama_model(model_name):
         return json_response
 
 async def pull_ollama_model_async(model_name, stream=True, retries=1):
-    url = "http://ollama:11434/api/pull"
+    url = config["ollama"]["base_url"] + "/api/pull"
     json_data = {"model": model_name, "stream": stream}
     
     for attempt in range(retries):
@@ -104,15 +112,11 @@ def list_openai_models():
 
 
 def list_ollama_models():
-    json_response = requests.get(url = "http://ollama:11434/api/tags").json()
+    json_response = requests.get(url = config["ollama"]["base_url"] + "/api/tags").json()
     if json_response.get("error", False):
         return []
     models = [model["name"] for model in json_response["models"] if "embed" not in model["name"]]
     return models
-
-def load_config(file_path = "config.yaml"):
-    with open(file_path, "r") as f:
-        return yaml.safe_load(f)
     
 def convert_bytes_to_base64(image_bytes):
     return base64.b64encode(image_bytes).decode("utf-8")

@@ -6,7 +6,7 @@ import chromadb
 config = load_config()
 
 def get_ollama_embeddings():
-    return OllamaEmbeddings(model=config["ollama"]["embedding_model"], base_url="http://ollama:11434")
+    return OllamaEmbeddings(model=config["ollama"]["embedding_model"], base_url=config["ollama"]["base_url"])
 
 def load_vectordb(embeddings=get_ollama_embeddings()):
     persistent_client = chromadb.PersistentClient(config["chromadb"]["chromadb_path"])

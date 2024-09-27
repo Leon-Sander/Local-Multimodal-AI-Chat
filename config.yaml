@@ -1,5 +1,7 @@
 ollama:
   embedding_model: "nomic-embed-text"
+  base_url: http://ollama:11434 # linux
+  #base_url: http://host.docker.internal:11434 # windows with ollama local install instead of docker container
 
 chat_config:
   chat_memory_length: 2

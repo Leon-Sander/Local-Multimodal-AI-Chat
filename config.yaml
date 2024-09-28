@@ -1,7 +1,7 @@
 ollama:
   embedding_model: "nomic-embed-text"
-  base_url: http://ollama:11434 # linux
-  #base_url: http://host.docker.internal:11434 # windows with ollama local install instead of docker container
+  base_url: http://ollama:11434 # with ollama docker container
+  #base_url: http://host.docker.internal:11434 # with ollama local install instead of docker container
 
 chat_config:
   chat_memory_length: 2
@@ -12,7 +12,7 @@ pdf_text_splitter:
   overlap: 50
   separators: ["\n", "\n\n"]
 
-whisper_model: "openai/whisper-small"
+whisper_model: "openai/whisper-small" # choose from here https://huggingface.co/collections/openai/whisper-release-6501bba2cf999715fd953013
 
 chromadb:
   chromadb_path: "chroma_db"

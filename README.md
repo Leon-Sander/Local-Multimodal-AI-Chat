@@ -1,6 +1,8 @@
 # Local Multimodal AI Chat
 ## Getting Started
 
+You can follow my [YouTube-Video](https://youtu.be/eNwvAdem4vo) on setting up the repository on Linux or Windows.
+
 To get started with Local Multimodal AI Chat, clone the repository and follow these simple steps:
 
 ### Easiest and Preferred Method: Docker Compose

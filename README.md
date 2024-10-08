@@ -144,6 +144,7 @@ I welcome contributions of all forms. Whether you’re introducing new features,
 ## Contact Information
 
 If you're interested in working with me, feel free to contact me via email.
+Before contacting me because of errors you're encountering, make sure to check the github issues first: https://github.com/Leon-Sander/Local-Multimodal-AI-Chat/issues?q=
 
 - Email: leonsander.consulting@gmail.com
 - Twitter: [@leonsanderai](https://twitter.com/leonsanderai)

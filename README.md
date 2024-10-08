@@ -143,7 +143,7 @@ I welcome contributions of all forms. Whether you’re introducing new features,
 
 ## Contact Information
 
-For any questions, please contact me at:
+If you're interested in working with me, feel free to contact me via email.
 
 - Email: leonsander.consulting@gmail.com
 - Twitter: [@leonsanderai](https://twitter.com/leonsanderai)

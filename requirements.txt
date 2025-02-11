@@ -1,4 +1,4 @@
-chromadb==0.4.18
+chromadb==0.6.3
 ctransformers==0.2.27
 InstructorEmbedding==1.0.1
 langchain==0.0.341
@@ -7,7 +7,8 @@ llama_cpp_python==0.2.20
 pypdfium2==4.24.0
 sentence-transformers==2.2.2
 PyYAML==6.0.1
-torch==2.1.1
+torch==2.2.0
 streamlit==1.28.2
 streamlit-mic-recorder==0.0.4
 transformers==4.35.2
+huggingface-hub==0.24.0

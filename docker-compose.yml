@@ -22,11 +22,13 @@ services:
     environment:
       - OLLAMA_LOAD_TIMEOUT=15m # increase if you get a Timeout Error
 
-    # remove deploy and runtime if you are not using a GPU
     deploy:
       resources:
         reservations:
           devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
             - driver: nvidia
               count: 1
               capabilities: [gpu]

@@ -15,7 +15,6 @@
 
 import streamlit as st
 from chat_api_handler import ChatAPIHandler
-from streamlit_mic_recorder import mic_recorder
 from utils import get_timestamp, load_config, get_avatar
 from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
@@ -127,11 +126,12 @@ def main():
     model_col.selectbox(label="Select a Model", options = st.session_state.model_options, key="model_to_use")
     pdf_toggle_col, voice_rec_col = st.sidebar.columns(2)
     pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False, on_change=clear_cache)
-    with voice_rec_col:
-        voice_recording=mic_recorder(start_prompt="Record Audio",stop_prompt="Stop recording", just_once=True)
+    
+    # Add audio input in the sidebar
+    audio_input = st.sidebar.audio_input("Record Audio", key="audio_input")
+    
     delete_chat_col, clear_cache_col = st.sidebar.columns(2)
     delete_chat_col.button("Delete Chat Session", on_click=delete_chat_session_history)
-    #clear_cache_col.button("Clear Cache", on_click=clear_cache)
     
     chat_container = st.container()
     
@@ -195,12 +195,12 @@ def main():
                 save_text_message(get_session_key(), "user", user_input.text)
                 save_text_message(get_session_key(), "assistant", llm_answer)
 
-    if voice_recording:
-        transcribed_audio = transcribe_audio(voice_recording["bytes"])
-        print(transcribed_audio)
+    # Handle audio input
+    if audio_input:
+        transcribed_audio = transcribe_audio(audio_input.getvalue())
         llm_answer = ChatAPIHandler.chat(user_input=transcribed_audio, 
                                    chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
-        save_audio_message(get_session_key(), "user", voice_recording["bytes"])
+        save_audio_message(get_session_key(), "user", audio_input.getvalue())
         save_text_message(get_session_key(), "assistant", llm_answer)
 
     if (st.session_state.session_key != "new_session") != (st.session_state.new_session_key != None):

@@ -3,6 +3,12 @@ import streamlit as st
 import sqlite3
 config = load_config()
 
+# Default values for settings
+DEFAULT_CHAT_MEMORY_LENGTH = 2
+DEFAULT_RETRIEVED_DOCUMENTS = 3
+DEFAULT_CHUNK_SIZE = 1024
+DEFAULT_CHUNK_OVERLAP = 50
+
 def get_db_connection():
     return st.session_state.db_conn
 
@@ -127,7 +133,16 @@ def init_db():
     );
     """
 
+    create_settings_table = """
+    CREATE TABLE IF NOT EXISTS settings (
+        setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        setting_name TEXT NOT NULL UNIQUE,
+        setting_value TEXT NOT NULL
+    );
+    """
+
     cursor.execute(create_messages_table)
+    cursor.execute(create_settings_table)
     conn.commit()
     conn.close()
 
@@ -155,6 +170,25 @@ def load_last_k_text_messages_ollama(chat_history_id, k):
 
 
     return chat_history
+
+def get_setting(setting_name, default_value):
+    conn, cursor = get_db_connection_and_cursor()
+    cursor.execute("SELECT setting_value FROM settings WHERE setting_name = ?", (setting_name,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        # If setting doesn't exist, create it with default value
+        cursor.execute("INSERT INTO settings (setting_name, setting_value) VALUES (?, ?)", 
+                      (setting_name, str(default_value)))
+        conn.commit()
+        return default_value
+
+def update_setting(setting_name, setting_value):
+    conn, cursor = get_db_connection_and_cursor()
+    cursor.execute("INSERT OR REPLACE INTO settings (setting_name, setting_value) VALUES (?, ?)", 
+                  (setting_name, str(setting_value)))
+    conn.commit()
 
 if __name__ == "__main__":
     init_db()

@@ -20,7 +20,7 @@ from utils import get_timestamp, load_config, get_avatar
 from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
 from html_templates import css
-from database_operations import save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama
+from database_operations import save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama, get_setting, update_setting, DEFAULT_CHAT_MEMORY_LENGTH, DEFAULT_RETRIEVED_DOCUMENTS, DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP
 from utils import list_openai_models, list_ollama_models, command
 import sqlite3
 config = load_config()
@@ -86,6 +86,42 @@ def main():
         clear_cache()
 
     st.sidebar.selectbox("Select a chat session", chat_sessions, key="session_key", index=index)
+    
+    # Add configuration section
+    st.sidebar.title("Configuration")
+    
+    # Chat History Settings
+    st.sidebar.subheader("Chat History")
+    chat_memory_length = st.sidebar.number_input(
+        "Number of Previous Messages",
+        value=int(get_setting("chat_memory_length", DEFAULT_CHAT_MEMORY_LENGTH)),
+        key="chat_memory_length",
+        on_change=lambda: update_setting("chat_memory_length", st.session_state.chat_memory_length)
+    )
+    
+    # PDF Processing Settings
+    st.sidebar.subheader("PDF Processing")
+    retrieved_docs = st.sidebar.number_input(
+        "Number of Retrieved PDF Chunks",
+        value=int(get_setting("retrieved_documents", DEFAULT_RETRIEVED_DOCUMENTS)),
+        key="retrieved_documents",
+        on_change=lambda: update_setting("retrieved_documents", st.session_state.retrieved_documents)
+    )
+    chunk_size = st.sidebar.number_input(
+        "PDF Chunk Size (characters)",
+        value=int(get_setting("chunk_size", DEFAULT_CHUNK_SIZE)),
+        key="chunk_size",
+        on_change=lambda: update_setting("chunk_size", st.session_state.chunk_size)
+    )
+    chunk_overlap = st.sidebar.number_input(
+        "PDF Chunk Overlap (characters)",
+        value=int(get_setting("chunk_overlap", DEFAULT_CHUNK_OVERLAP)),
+        key="chunk_overlap",
+        on_change=lambda: update_setting("chunk_overlap", st.session_state.chunk_overlap)
+    )
+    
+    # Model Settings
+    st.sidebar.subheader("Model Configuration")
     api_col, model_col = st.sidebar.columns(2)
     api_col.selectbox(label="Select an API", options = ["ollama","openai"], key="endpoint_to_use", on_change=update_model_options)
     model_col.selectbox(label="Select a Model", options = st.session_state.model_options, key="model_to_use")
@@ -115,7 +151,7 @@ def main():
         print(transcribed_audio)
         #llm_chain = load_chain()
         llm_answer = ChatAPIHandler.chat(user_input = transcribed_audio, 
-                                   chat_history=load_last_k_text_messages_ollama(get_session_key(), config["chat_config"]["chat_memory_length"]))
+                                   chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
         save_audio_message(get_session_key(), "user", voice_recording["bytes"])
         save_text_message(get_session_key(), "assistant", llm_answer)
 
@@ -147,7 +183,7 @@ def main():
 
         if user_input:
             llm_answer = ChatAPIHandler.chat(user_input = user_input, 
-                                       chat_history=load_last_k_text_messages_ollama(get_session_key(), config["chat_config"]["chat_memory_length"]))
+                                       chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
             save_text_message(get_session_key(), "user", user_input)
             save_text_message(get_session_key(), "assistant", llm_answer)
             user_input = None

@@ -105,7 +105,7 @@ class ChatAPIHandler:
 
         if st.session_state.get("pdf_chat", False):
             vector_db = load_vectordb()
-            retrieved_documents = vector_db.similarity_search(user_input, k=config["chat_config"]["number_of_retrieved_documents"])
+            retrieved_documents = vector_db.similarity_search(user_input, k=st.session_state.retrieved_documents)
             context = "\n".join([item.page_content for item in retrieved_documents])
             template = f"Answer the user question based on this context: {context}\nUser Question: {user_input}"
             chat_history.append({"role": "user", "content": template})

@@ -4,15 +4,6 @@ ollama:
   #base_url: http://host.docker.internal:11434 # with ollama local install instead of docker container on Windows
   #base_url: http://localhost:11434 # with a complete manual install on linux
 
-chat_config:
-  chat_memory_length: 2
-  number_of_retrieved_documents: 3
-
-pdf_text_splitter:
-  chunk_size: 1024 # number of characters 1024 roughly equels 256 tokens
-  overlap: 50
-  separators: ["\n", "\n\n"]
-
 whisper_model: "openai/whisper-small" # choose from here https://huggingface.co/collections/openai/whisper-release-6501bba2cf999715fd953013
 
 chromadb:

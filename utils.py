@@ -132,3 +132,7 @@ def get_avatar(sender_type):
         return "chat_icons/user_image.png"
     else:
        return "chat_icons/bot_image.png"
+
+def save_config(config):
+    with open("config.yaml", "w") as f:
+        yaml.dump(config, f, default_flow_style=False)

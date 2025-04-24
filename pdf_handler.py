@@ -3,6 +3,8 @@ from langchain.schema.document import Document
 from vectordb_handler import load_vectordb
 from utils import load_config, timeit
 import pypdfium2
+import streamlit as st
+
 config = load_config()
 
 def get_pdf_texts(pdfs_bytes_list):
@@ -13,8 +15,8 @@ def extract_text_from_pdf(pdf_bytes):
     return "\n".join(pdf_file.get_page(page_number).get_textpage().get_text_range() for page_number in range(len(pdf_file)))
     
 def get_text_chunks(text):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=config["pdf_text_splitter"]["chunk_size"], 
-                                              chunk_overlap=config["pdf_text_splitter"]["overlap"],
+    splitter = RecursiveCharacterTextSplitter(chunk_size=st.session_state.chunk_size, 
+                                              chunk_overlap=st.session_state.chunk_overlap,
                                                 separators=config["pdf_text_splitter"]["separators"])
     return splitter.split_text(text)
 

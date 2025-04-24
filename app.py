@@ -20,7 +20,14 @@ from utils import get_timestamp, load_config, get_avatar
 from audio_handler import transcribe_audio
 from pdf_handler import add_documents_to_db
 from html_templates import css
-from database_operations import save_text_message, save_image_message, save_audio_message, load_messages, get_all_chat_history_ids, delete_chat_history, load_last_k_text_messages_ollama, get_setting, update_setting, DEFAULT_CHAT_MEMORY_LENGTH, DEFAULT_RETRIEVED_DOCUMENTS, DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP
+from database_operations import (
+    get_db_manager,
+    close_db_manager,
+    DEFAULT_CHAT_MEMORY_LENGTH,
+    DEFAULT_RETRIEVED_DOCUMENTS,
+    DEFAULT_CHUNK_SIZE,
+    DEFAULT_CHUNK_OVERLAP
+)
 from utils import list_openai_models, list_ollama_models, command
 import sqlite3
 config = load_config()
@@ -39,7 +46,8 @@ def get_session_key():
     return st.session_state.session_key
 
 def delete_chat_session_history():
-    delete_chat_history(st.session_state.session_key)
+    db_manager = get_db_manager()
+    db_manager.message_repo.delete_chat_history(st.session_state.session_key)
     st.session_state.session_index_tracker = "new_session"
 
 def clear_cache():
@@ -49,7 +57,6 @@ def list_model_options():
     if st.session_state.endpoint_to_use == "ollama":
         ollama_options = list_ollama_models()
         if ollama_options == []:
-            #save_text_message(get_session_key(), "assistant", "No models available, please choose one from https://ollama.com/library and pull with /pull <model_name>")
             st.warning("No ollama models available, please choose one from https://ollama.com/library and pull with /pull <model_name>")
         return ollama_options
     elif st.session_state.endpoint_to_use == "openai":
@@ -62,22 +69,24 @@ def main():
     st.title("Multimodal Local Chat App")
     st.write(css, unsafe_allow_html=True)
     
-    if "db_conn" not in st.session_state:
+    if "db_manager" not in st.session_state:
         st.session_state.session_key = "new_session"
         st.session_state.new_session_key = None
         st.session_state.session_index_tracker = "new_session"
-        st.session_state.db_conn = sqlite3.connect(config["chat_sessions_database_path"], check_same_thread=False)
         st.session_state.audio_uploader_key = 0
         st.session_state.pdf_uploader_key = 1
         st.session_state.endpoint_to_use = "ollama"
         st.session_state.model_options = list_model_options()
         st.session_state.model_tracker = None
+
     if st.session_state.session_key == "new_session" and st.session_state.new_session_key != None:
         st.session_state.session_index_tracker = st.session_state.new_session_key
         st.session_state.new_session_key = None
 
+    db_manager = get_db_manager()
+    
     st.sidebar.title("Chat Sessions")
-    chat_sessions = ["new_session"] + get_all_chat_history_ids()
+    chat_sessions = ["new_session"] + db_manager.message_repo.get_all_chat_history_ids()
     try:
         index = chat_sessions.index(st.session_state.session_index_tracker)
     except ValueError:
@@ -94,30 +103,30 @@ def main():
     st.sidebar.subheader("Chat History")
     chat_memory_length = st.sidebar.number_input(
         "Number of Previous Messages",
-        value=int(get_setting("chat_memory_length", DEFAULT_CHAT_MEMORY_LENGTH)),
+        value=int(db_manager.settings_repo.get_setting("chat_memory_length", DEFAULT_CHAT_MEMORY_LENGTH)),
         key="chat_memory_length",
-        on_change=lambda: update_setting("chat_memory_length", st.session_state.chat_memory_length)
+        on_change=lambda: db_manager.settings_repo.update_setting("chat_memory_length", st.session_state.chat_memory_length)
     )
     
     # PDF Processing Settings
     st.sidebar.subheader("PDF Processing")
     retrieved_docs = st.sidebar.number_input(
         "Number of Retrieved PDF Chunks",
-        value=int(get_setting("retrieved_documents", DEFAULT_RETRIEVED_DOCUMENTS)),
+        value=int(db_manager.settings_repo.get_setting("retrieved_documents", DEFAULT_RETRIEVED_DOCUMENTS)),
         key="retrieved_documents",
-        on_change=lambda: update_setting("retrieved_documents", st.session_state.retrieved_documents)
+        on_change=lambda: db_manager.settings_repo.update_setting("retrieved_documents", st.session_state.retrieved_documents)
     )
     chunk_size = st.sidebar.number_input(
         "PDF Chunk Size (characters)",
-        value=int(get_setting("chunk_size", DEFAULT_CHUNK_SIZE)),
+        value=int(db_manager.settings_repo.get_setting("chunk_size", DEFAULT_CHUNK_SIZE)),
         key="chunk_size",
-        on_change=lambda: update_setting("chunk_size", st.session_state.chunk_size)
+        on_change=lambda: db_manager.settings_repo.update_setting("chunk_size", st.session_state.chunk_size)
     )
     chunk_overlap = st.sidebar.number_input(
         "PDF Chunk Overlap (characters)",
-        value=int(get_setting("chunk_overlap", DEFAULT_CHUNK_OVERLAP)),
+        value=int(db_manager.settings_repo.get_setting("chunk_overlap", DEFAULT_CHUNK_OVERLAP)),
         key="chunk_overlap",
-        on_change=lambda: update_setting("chunk_overlap", st.session_state.chunk_overlap)
+        on_change=lambda: db_manager.settings_repo.update_setting("chunk_overlap", st.session_state.chunk_overlap)
     )
     
     # Model Settings
@@ -131,7 +140,6 @@ def main():
         voice_recording=mic_recorder(start_prompt="Record Audio",stop_prompt="Stop recording", just_once=True)
     delete_chat_col, clear_cache_col = st.sidebar.columns(2)
     delete_chat_col.button("Delete Chat Session", on_click=delete_chat_session_history)
-    #clear_cache_col.button("Clear Cache", on_click=clear_cache)
     
     chat_container = st.container()
     
@@ -170,42 +178,42 @@ def main():
                 with st.spinner("Processing images..."):
                     for image_file in image_files:
                         llm_answer = ChatAPIHandler.chat(user_input=user_input.text or "", chat_history=[], image=image_file.getvalue())
-                        save_text_message(get_session_key(), "user", user_input.text or "")
-                        save_image_message(get_session_key(), "user", image_file.getvalue())
-                        save_text_message(get_session_key(), "assistant", llm_answer)
+                        db_manager.message_repo.save_message(get_session_key(), "user", "text", user_input.text or "")
+                        db_manager.message_repo.save_message(get_session_key(), "user", "image", image_file.getvalue())
+                        db_manager.message_repo.save_message(get_session_key(), "assistant", "text", llm_answer)
             
             # Process audio files
             if audio_files:
                 for audio_file in audio_files:
                     transcribed_audio = transcribe_audio(audio_file.getvalue())
                     llm_answer = ChatAPIHandler.chat(user_input=(user_input.text or "") + "\n" + transcribed_audio, chat_history=[])
-                    save_text_message(get_session_key(), "user", user_input.text or "")
-                    save_audio_message(get_session_key(), "user", audio_file.getvalue())
-                    save_text_message(get_session_key(), "assistant", llm_answer)
+                    db_manager.message_repo.save_message(get_session_key(), "user", "text", user_input.text or "")
+                    db_manager.message_repo.save_message(get_session_key(), "user", "audio", audio_file.getvalue())
+                    db_manager.message_repo.save_message(get_session_key(), "assistant", "text", llm_answer)
         
         # Handle text input only if no files were processed
         elif user_input.text:
             if user_input.text.startswith("/"):
                 response = command(user_input.text)
-                save_text_message(get_session_key(), "user", user_input.text)
-                save_text_message(get_session_key(), "assistant", response)
+                db_manager.message_repo.save_message(get_session_key(), "user", "text", user_input.text)
+                db_manager.message_repo.save_message(get_session_key(), "assistant", "text", response)
             else:
-                llm_answer = ChatAPIHandler.chat(user_input=user_input.text, 
-                                           chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
-                save_text_message(get_session_key(), "user", user_input.text)
-                save_text_message(get_session_key(), "assistant", llm_answer)
+                chat_history = db_manager.message_repo.load_last_k_text_messages(get_session_key(), st.session_state.chat_memory_length)
+                llm_answer = ChatAPIHandler.chat(user_input=user_input.text, chat_history=chat_history)
+                db_manager.message_repo.save_message(get_session_key(), "user", "text", user_input.text)
+                db_manager.message_repo.save_message(get_session_key(), "assistant", "text", llm_answer)
 
     if voice_recording:
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
-        llm_answer = ChatAPIHandler.chat(user_input=transcribed_audio, 
-                                   chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
-        save_audio_message(get_session_key(), "user", voice_recording["bytes"])
-        save_text_message(get_session_key(), "assistant", llm_answer)
+        chat_history = db_manager.message_repo.load_last_k_text_messages(get_session_key(), st.session_state.chat_memory_length)
+        llm_answer = ChatAPIHandler.chat(user_input=transcribed_audio, chat_history=chat_history)
+        db_manager.message_repo.save_message(get_session_key(), "user", "audio", voice_recording["bytes"])
+        db_manager.message_repo.save_message(get_session_key(), "assistant", "text", llm_answer)
 
     if (st.session_state.session_key != "new_session") != (st.session_state.new_session_key != None):
         with chat_container:
-            chat_history_messages = load_messages(get_session_key())
+            chat_history_messages = db_manager.message_repo.load_messages(get_session_key())
 
             for message in chat_history_messages:
                 with st.chat_message(name=message["sender_type"], avatar=get_avatar(message["sender_type"])):

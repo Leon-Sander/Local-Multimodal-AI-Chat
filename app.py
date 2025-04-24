@@ -134,60 +134,74 @@ def main():
     #clear_cache_col.button("Clear Cache", on_click=clear_cache)
     
     chat_container = st.container()
-    user_input = st.chat_input("Type your message here", key="user_input")
     
-    uploaded_pdf = st.sidebar.file_uploader("Upload a pdf file", accept_multiple_files=True, 
-                                        key=st.session_state.pdf_uploader_key, type=["pdf"], on_change=toggle_pdf_chat)
-    uploaded_image = st.sidebar.file_uploader("Upload an image file", type=["jpg", "jpeg", "png"], on_change=detoggle_pdf_chat)
-    uploaded_audio = st.sidebar.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg"], key=st.session_state.audio_uploader_key)
+    # Replace file uploaders with chat_input
+    user_input = st.chat_input(
+        "Type your message here",
+        key="user_input",
+        accept_file=True,
+        file_type=["pdf", "jpg", "jpeg", "png", "wav", "mp3", "ogg"]
+    )
 
-    if uploaded_pdf:
-        with st.spinner("Processing pdf..."):
-            add_documents_to_db(uploaded_pdf)
-            st.session_state.pdf_uploader_key += 2
+    if user_input:
+        # Handle file uploads if present
+        if user_input.files:
+            # Group files by type
+            pdf_files = []
+            image_files = []
+            audio_files = []
+            
+            for file in user_input.files:
+                file_type = file.name.split('.')[-1].lower()
+                if file_type in ["pdf"]:
+                    pdf_files.append(file)
+                elif file_type in ["jpg", "jpeg", "png"]:
+                    image_files.append(file)
+                elif file_type in ["wav", "mp3", "ogg"]:
+                    audio_files.append(file)
+            
+            # Process PDFs in batch
+            if pdf_files:
+                with st.spinner("Processing pdfs..."):
+                    add_documents_to_db(pdf_files)
+            
+            # Process images
+            if image_files:
+                with st.spinner("Processing images..."):
+                    for image_file in image_files:
+                        llm_answer = ChatAPIHandler.chat(user_input=user_input.text or "", chat_history=[], image=image_file.getvalue())
+                        save_text_message(get_session_key(), "user", user_input.text or "")
+                        save_image_message(get_session_key(), "user", image_file.getvalue())
+                        save_text_message(get_session_key(), "assistant", llm_answer)
+            
+            # Process audio files
+            if audio_files:
+                for audio_file in audio_files:
+                    transcribed_audio = transcribe_audio(audio_file.getvalue())
+                    llm_answer = ChatAPIHandler.chat(user_input=(user_input.text or "") + "\n" + transcribed_audio, chat_history=[])
+                    save_text_message(get_session_key(), "user", user_input.text or "")
+                    save_audio_message(get_session_key(), "user", audio_file.getvalue())
+                    save_text_message(get_session_key(), "assistant", llm_answer)
+        
+        # Handle text input only if no files were processed
+        elif user_input.text:
+            if user_input.text.startswith("/"):
+                response = command(user_input.text)
+                save_text_message(get_session_key(), "user", user_input.text)
+                save_text_message(get_session_key(), "assistant", response)
+            else:
+                llm_answer = ChatAPIHandler.chat(user_input=user_input.text, 
+                                           chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
+                save_text_message(get_session_key(), "user", user_input.text)
+                save_text_message(get_session_key(), "assistant", llm_answer)
 
     if voice_recording:
         transcribed_audio = transcribe_audio(voice_recording["bytes"])
         print(transcribed_audio)
-        #llm_chain = load_chain()
-        llm_answer = ChatAPIHandler.chat(user_input = transcribed_audio, 
+        llm_answer = ChatAPIHandler.chat(user_input=transcribed_audio, 
                                    chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
         save_audio_message(get_session_key(), "user", voice_recording["bytes"])
         save_text_message(get_session_key(), "assistant", llm_answer)
-
-    
-    if user_input:
-        if user_input.startswith("/"):
-            response = command(user_input)
-            save_text_message(get_session_key(), "user", user_input)
-            save_text_message(get_session_key(), "assistant", response)
-            user_input = None
-
-        if uploaded_image:
-            with st.spinner("Processing image..."):
-                llm_answer = ChatAPIHandler.chat(user_input = user_input, chat_history = [], image = uploaded_image.getvalue())
-                save_text_message(get_session_key(), "user", user_input)
-                save_image_message(get_session_key(), "user", uploaded_image.getvalue())
-                save_text_message(get_session_key(), "assistant", llm_answer)
-                user_input = None
-
-        if uploaded_audio:
-            transcribed_audio = transcribe_audio(uploaded_audio.getvalue())
-            print(transcribed_audio)
-            llm_answer = ChatAPIHandler.chat(user_input = user_input + "\n" + transcribed_audio, chat_history=[])
-            save_text_message(get_session_key(), "user", user_input)
-            save_audio_message(get_session_key(), "user", uploaded_audio.getvalue())
-            save_text_message(get_session_key(), "assistant", llm_answer)
-            st.session_state.audio_uploader_key += 2
-            user_input = None
-
-        if user_input:
-            llm_answer = ChatAPIHandler.chat(user_input = user_input, 
-                                       chat_history=load_last_k_text_messages_ollama(get_session_key(), st.session_state.chat_memory_length))
-            save_text_message(get_session_key(), "user", user_input)
-            save_text_message(get_session_key(), "assistant", llm_answer)
-            user_input = None
-
 
     if (st.session_state.session_key != "new_session") != (st.session_state.new_session_key != None):
         with chat_container:

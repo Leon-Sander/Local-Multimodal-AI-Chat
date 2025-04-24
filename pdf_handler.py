@@ -17,7 +17,7 @@ def extract_text_from_pdf(pdf_bytes):
 def get_text_chunks(text):
     splitter = RecursiveCharacterTextSplitter(chunk_size=st.session_state.chunk_size, 
                                               chunk_overlap=st.session_state.chunk_overlap,
-                                                separators=config["pdf_text_splitter"]["separators"])
+                                              separators=["\n", "\n\n"])
     return splitter.split_text(text)
 
 def get_document_chunks(text_list):

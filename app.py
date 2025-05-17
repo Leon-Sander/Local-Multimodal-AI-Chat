@@ -98,6 +98,20 @@ def main():
     # Add configuration section
     st.sidebar.title("Configuration")
     
+    # Model Settings
+    st.sidebar.subheader("Model Configuration")
+    api_col, model_col = st.sidebar.columns(2)
+    api_col.selectbox(label="Select an API", options = ["ollama","openai"], key="endpoint_to_use", on_change=update_model_options)
+    model_col.selectbox(label="Select a Model", options = st.session_state.model_options, key="model_to_use")
+    pdf_toggle_col, voice_rec_col = st.sidebar.columns(2)
+    pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False, on_change=clear_cache)
+    
+    # Add audio input in the sidebar
+    audio_input = st.sidebar.audio_input("Record Audio", key="audio_input")
+    
+    delete_chat_col, clear_cache_col = st.sidebar.columns(2)
+    delete_chat_col.button("Delete Chat Session", on_click=delete_chat_session_history)
+
     # Chat History Settings
     st.sidebar.subheader("Chat History")
     chat_memory_length = st.sidebar.number_input(
@@ -127,20 +141,6 @@ def main():
         key="chunk_overlap",
         on_change=lambda: db_manager.settings_repo.update_setting("chunk_overlap", st.session_state.chunk_overlap)
     )
-    
-    # Model Settings
-    st.sidebar.subheader("Model Configuration")
-    api_col, model_col = st.sidebar.columns(2)
-    api_col.selectbox(label="Select an API", options = ["ollama","openai"], key="endpoint_to_use", on_change=update_model_options)
-    model_col.selectbox(label="Select a Model", options = st.session_state.model_options, key="model_to_use")
-    pdf_toggle_col, voice_rec_col = st.sidebar.columns(2)
-    pdf_toggle_col.toggle("PDF Chat", key="pdf_chat", value=False, on_change=clear_cache)
-    
-    # Add audio input in the sidebar
-    audio_input = st.sidebar.audio_input("Record Audio", key="audio_input")
-    
-    delete_chat_col, clear_cache_col = st.sidebar.columns(2)
-    delete_chat_col.button("Delete Chat Session", on_click=delete_chat_session_history)
     
     chat_container = st.container()
     
@@ -173,6 +173,12 @@ def main():
             if pdf_files:
                 with st.spinner("Processing pdfs..."):
                     add_documents_to_db(pdf_files)
+                    # If there's a text message, process it after PDFs are added
+                    if user_input.text:
+                        chat_history = db_manager.message_repo.load_last_k_text_messages(get_session_key(), st.session_state.chat_memory_length)
+                        llm_answer = ChatAPIHandler.chat(user_input=user_input.text, chat_history=chat_history)
+                        db_manager.message_repo.save_message(get_session_key(), "user", "text", user_input.text)
+                        db_manager.message_repo.save_message(get_session_key(), "assistant", "text", llm_answer)
             
             # Process images
             if image_files:
